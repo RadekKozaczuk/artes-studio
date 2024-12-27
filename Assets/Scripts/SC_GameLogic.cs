@@ -5,119 +5,122 @@ using UnityEngine;
 
 public class SC_GameLogic : MonoBehaviour
 {
-    private Dictionary<string, GameObject> unityObjects;
-    private int score = 0;
-    private float displayScore = 0;
-    private GameBoard gameBoard;
-    private GlobalEnums.GameState currentState = GlobalEnums.GameState.move;
-    public GlobalEnums.GameState CurrentState { get { return currentState; } }
+    public GlobalEnums.GameState CurrentState { get; private set; } = GlobalEnums.GameState.Move;
 
-    #region MonoBehaviour
-    private void Awake()
+    Dictionary<string, GameObject> _unityObjects;
+    readonly int _score = 0;
+    float _displayScore;
+    GameBoard _gameBoard;
+
+#region MonoBehaviour
+    void Awake()
     {
         Init();
     }
 
-    private void Start()
+    void Start()
     {
-        StartGame();
+        _unityObjects["Txt_Score"].GetComponent<TextMeshProUGUI>().text = _score.ToString("0");
     }
 
-    private void Update()
+    void Update()
     {
-        displayScore = Mathf.Lerp(displayScore, gameBoard.Score, SC_GameVariables.Instance.scoreSpeed * Time.deltaTime);
-        unityObjects["Txt_Score"].GetComponent<TMPro.TextMeshProUGUI>().text = displayScore.ToString("0");
+        _displayScore = Mathf.Lerp(_displayScore, _gameBoard.Score, SC_GameVariables.Instance.scoreSpeed * Time.deltaTime);
+        _unityObjects["Txt_Score"].GetComponent<TextMeshProUGUI>().text = _displayScore.ToString("0");
     }
-    #endregion
+#endregion
 
-    #region Logic
-    private void Init()
+#region Logic
+    void Init()
     {
-        unityObjects = new Dictionary<string, GameObject>();
-        GameObject[] _obj = GameObject.FindGameObjectsWithTag("UnityObject");
-        foreach (GameObject g in _obj)
-            unityObjects.Add(g.name,g);
+        _unityObjects = new Dictionary<string, GameObject>();
+        GameObject[] obj = GameObject.FindGameObjectsWithTag("UnityObject");
+        foreach (GameObject g in obj)
+            _unityObjects.Add(g.name,g);
 
-        gameBoard = new GameBoard(7, 7);
+        _gameBoard = new GameBoard(7, 7);
         Setup();
     }
-    private void Setup()
-    {
-        for (int x = 0; x < gameBoard.Width; x++)
-            for (int y = 0; y < gameBoard.Height; y++)
-            {
-                Vector2 _pos = new Vector2(x, y);
-                GameObject _bgTile = Instantiate(SC_GameVariables.Instance.bgTilePrefabs, _pos, Quaternion.identity);
-                _bgTile.transform.SetParent(unityObjects["GemsHolder"].transform);
-                _bgTile.name = "BG Tile - " + x + ", " + y;
 
-                int _gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
+    void Setup()
+    {
+        for (int x = 0; x < _gameBoard.Width; x++)
+            for (int y = 0; y < _gameBoard.Height; y++)
+            {
+                var pos = new Vector2(x, y);
+                GameObject bgTile = Instantiate(SC_GameVariables.Instance.bgTilePrefabs, pos, Quaternion.identity);
+                bgTile.transform.SetParent(_unityObjects["GemsHolder"].transform);
+                bgTile.name = "BG Tile - " + x + ", " + y;
+
+                int gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
 
                 int iterations = 0;
-                while (gameBoard.MatchesAt(new Vector2Int(x, y), SC_GameVariables.Instance.gems[_gemToUse]) && iterations < 100)
+                while (_gameBoard.MatchesAt(new Vector2Int(x, y), SC_GameVariables.Instance.gems[gemToUse]) && iterations < 100)
                 {
-                    _gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
+                    gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
                     iterations++;
                 }
-                SpawnGem(new Vector2Int(x, y), SC_GameVariables.Instance.gems[_gemToUse]);
+                SpawnGem(new Vector2Int(x, y), SC_GameVariables.Instance.gems[gemToUse]);
             }
     }
-    public void StartGame()
-    {
-        unityObjects["Txt_Score"].GetComponent<TextMeshProUGUI>().text = score.ToString("0");
-    }
-    private void SpawnGem(Vector2Int _Position, SC_Gem _GemToSpawn)
+
+    void SpawnGem(Vector2Int position, SC_Gem gemToSpawn)
     {
         if (Random.Range(0, 100f) < SC_GameVariables.Instance.bombChance)
-            _GemToSpawn = SC_GameVariables.Instance.bomb;
+            gemToSpawn = SC_GameVariables.Instance.bomb;
 
-        SC_Gem _gem = Instantiate(_GemToSpawn, new Vector3(_Position.x, _Position.y + SC_GameVariables.Instance.dropHeight, 0f), Quaternion.identity);
-        _gem.transform.SetParent(unityObjects["GemsHolder"].transform);
-        _gem.name = "Gem - " + _Position.x + ", " + _Position.y;
-        gameBoard.SetGem(_Position.x,_Position.y, _gem);
-        _gem.SetupGem(this,_Position);
+        SC_Gem gem = Instantiate(gemToSpawn, new Vector3(position.x, position.y + SC_GameVariables.Instance.dropHeight, 0f), Quaternion.identity);
+        gem.transform.SetParent(_unityObjects["GemsHolder"].transform);
+        gem.name = "Gem - " + position.x + ", " + position.y;
+        _gameBoard.SetGem(position.x,position.y, gem);
+        gem.SetupGem(this,position);
     }
-    public void SetGem(int _X,int _Y, SC_Gem _Gem)
+
+    public void SetGem(int x,int y, SC_Gem gem)
     {
-        gameBoard.SetGem(_X,_Y, _Gem);
+        _gameBoard.SetGem(x,y, gem);
     }
-    public SC_Gem GetGem(int _X, int _Y)
+
+    public SC_Gem GetGem(int x, int y)
     {
-        return gameBoard.GetGem(_X, _Y);
+        return _gameBoard.GetGem(x, y);
     }
-    public void SetState(GlobalEnums.GameState _CurrentState)
+
+    public void SetState(GlobalEnums.GameState currentState)
     {
-        currentState = _CurrentState;
+        CurrentState = currentState;
     }
+    
     public void DestroyMatches()
     {
-        for (int i = 0; i < gameBoard.CurrentMatches.Count; i++)
-            if (gameBoard.CurrentMatches[i] != null)
+        foreach (SC_Gem t in _gameBoard.CurrentMatches)
+            if (t != null)
             {
-                ScoreCheck(gameBoard.CurrentMatches[i]);
-                DestroyMatchedGemsAt(gameBoard.CurrentMatches[i].posIndex);
+                _gameBoard.Score += t.scoreValue;
+                DestroyMatchedGemsAt(t.posIndex);
             }
 
         StartCoroutine(DecreaseRowCo());
     }
-    private IEnumerator DecreaseRowCo()
+
+    IEnumerator DecreaseRowCo()
     {
         yield return new WaitForSeconds(.2f);
 
         int nullCounter = 0;
-        for (int x = 0; x < gameBoard.Width; x++)
+        for (int x = 0; x < _gameBoard.Width; x++)
         {
-            for (int y = 0; y < gameBoard.Height; y++)
+            for (int y = 0; y < _gameBoard.Height; y++)
             {
-                SC_Gem _curGem = gameBoard.GetGem(x, y);
-                if (_curGem == null)
+                SC_Gem curGem = _gameBoard.GetGem(x, y);
+                if (curGem == null)
                 {
                     nullCounter++;
                 }
                 else if (nullCounter > 0)
                 {
-                    _curGem.posIndex.y -= nullCounter;
-                    SetGem(x, y - nullCounter, _curGem);
+                    curGem.posIndex.y -= nullCounter;
+                    SetGem(x, y - nullCounter, curGem);
                     SetGem(x, y, null);
                 }
             }
@@ -127,29 +130,25 @@ public class SC_GameLogic : MonoBehaviour
         StartCoroutine(FilledBoardCo());
     }
 
-    public void ScoreCheck(SC_Gem gemToCheck)
+    void DestroyMatchedGemsAt(Vector2Int pos)
     {
-        gameBoard.Score += gemToCheck.scoreValue;
-    }
-    private void DestroyMatchedGemsAt(Vector2Int _Pos)
-    {
-        SC_Gem _curGem = gameBoard.GetGem(_Pos.x,_Pos.y);
-        if (_curGem != null)
-        {
-            Instantiate(_curGem.destroyEffect, new Vector2(_Pos.x, _Pos.y), Quaternion.identity);
+        SC_Gem curGem = _gameBoard.GetGem(pos.x, pos.y);
+        if (curGem == null)
+            return;
 
-            Destroy(_curGem.gameObject);
-            SetGem(_Pos.x,_Pos.y, null);
-        }
+        Instantiate(curGem.destroyEffect, new Vector2(pos.x, pos.y), Quaternion.identity);
+
+        Destroy(curGem.gameObject);
+        SetGem(pos.x,pos.y, null);
     }
 
-    private IEnumerator FilledBoardCo()
+    IEnumerator FilledBoardCo()
     {
         yield return new WaitForSeconds(0.5f);
         RefillBoard();
         yield return new WaitForSeconds(0.5f);
-        gameBoard.FindAllMatches();
-        if (gameBoard.CurrentMatches.Count > 0)
+        _gameBoard.FindAllMatches();
+        if (_gameBoard.CurrentMatches.Count > 0)
         {
             yield return new WaitForSeconds(0.5f);
             DestroyMatches();
@@ -157,46 +156,48 @@ public class SC_GameLogic : MonoBehaviour
         else
         {
             yield return new WaitForSeconds(0.5f);
-            currentState = GlobalEnums.GameState.move;
+            CurrentState = GlobalEnums.GameState.Move;
         }
     }
-    private void RefillBoard()
+
+    void RefillBoard()
     {
-        for (int x = 0; x < gameBoard.Width; x++)
-        {
-            for (int y = 0; y < gameBoard.Height; y++)
+        for (int x = 0; x < _gameBoard.Width; x++)
+            for (int y = 0; y < _gameBoard.Height; y++)
             {
-                SC_Gem _curGem = gameBoard.GetGem(x,y);
-                if (_curGem == null)
-                {
-                    int gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
-                    SpawnGem(new Vector2Int(x, y), SC_GameVariables.Instance.gems[gemToUse]);
-                }
+                SC_Gem curGem = _gameBoard.GetGem(x, y);
+                if (curGem != null)
+                    continue;
+
+                int gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
+                SpawnGem(new Vector2Int(x, y), SC_GameVariables.Instance.gems[gemToUse]);
             }
-        }
+
         CheckMisplacedGems();
     }
-    private void CheckMisplacedGems()
+
+    void CheckMisplacedGems()
     {
-        List<SC_Gem> foundGems = new List<SC_Gem>();
+        var foundGems = new List<SC_Gem>();
         foundGems.AddRange(FindObjectsOfType<SC_Gem>());
-        for (int x = 0; x < gameBoard.Width; x++)
+        for (int x = 0; x < _gameBoard.Width; x++)
         {
-            for (int y = 0; y < gameBoard.Height; y++)
+            for (int y = 0; y < _gameBoard.Height; y++)
             {
-                SC_Gem _curGem = gameBoard.GetGem(x, y);
-                if (foundGems.Contains(_curGem))
-                    foundGems.Remove(_curGem);
+                SC_Gem curGem = _gameBoard.GetGem(x, y);
+                if (foundGems.Contains(curGem))
+                    foundGems.Remove(curGem);
             }
         }
 
         foreach (SC_Gem g in foundGems)
             Destroy(g.gameObject);
     }
+    
     public void FindAllMatches()
     {
-        gameBoard.FindAllMatches();
+        _gameBoard.FindAllMatches();
     }
 
-    #endregion
+#endregion
 }

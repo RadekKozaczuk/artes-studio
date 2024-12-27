@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SC_Gem : MonoBehaviour
@@ -7,20 +6,19 @@ public class SC_Gem : MonoBehaviour
     [HideInInspector]
     public Vector2Int posIndex;
 
-    private Vector2 firstTouchPosition;
-    private Vector2 finalTouchPosition;
-    private bool mousePressed;
-    private float swipeAngle = 0;
-    private SC_Gem otherGem;
-
     public GlobalEnums.GemType type;
-    public bool isMatch = false;
-    private Vector2Int previousPos;
+    public bool isMatch;
     public GameObject destroyEffect;
     public int scoreValue = 10;
-
     public int blastSize = 1;
-    private SC_GameLogic scGameLogic;
+    
+    Vector2 _firstTouchPosition;
+    Vector2 _finalTouchPosition;
+    bool _mousePressed;
+    float _swipeAngle;
+    SC_Gem _otherGem;
+    Vector2Int _previousPos;
+    SC_GameLogic _scGameLogic;
 
     void Update()
     {
@@ -29,103 +27,104 @@ public class SC_Gem : MonoBehaviour
         else
         {
             transform.position = new Vector3(posIndex.x, posIndex.y, 0);
-            scGameLogic.SetGem(posIndex.x, posIndex.y, this);
+            _scGameLogic.SetGem(posIndex.x, posIndex.y, this);
         }
-        if (mousePressed && Input.GetMouseButtonUp(0))
+
+        if (_mousePressed && Input.GetMouseButtonUp(0))
         {
-            mousePressed = false;
-            if (scGameLogic.CurrentState == GlobalEnums.GameState.move)
+            _mousePressed = false;
+            if (_scGameLogic.CurrentState == GlobalEnums.GameState.Move)
             {
-                finalTouchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                _finalTouchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 CalculateAngle();
             }
         }
     }
 
-    public void SetupGem(SC_GameLogic _ScGameLogic,Vector2Int _Position)
+    public void SetupGem(SC_GameLogic scGameLogic,Vector2Int position)
     {
-        posIndex = _Position;
-        scGameLogic = _ScGameLogic;
+        posIndex = position;
+        _scGameLogic = scGameLogic;
     }
 
-    private void OnMouseDown()
+    void OnMouseDown()
     {
-        if (scGameLogic.CurrentState == GlobalEnums.GameState.move)
+        if (_scGameLogic.CurrentState == GlobalEnums.GameState.Move)
         {
-            firstTouchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            mousePressed = true;
+            _firstTouchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            _mousePressed = true;
         }
     }
 
-    private void CalculateAngle()
+    void CalculateAngle()
     {
-        swipeAngle = Mathf.Atan2(finalTouchPosition.y - firstTouchPosition.y, finalTouchPosition.x - firstTouchPosition.x);
-        swipeAngle = swipeAngle * 180 / Mathf.PI;
+        _swipeAngle = Mathf.Atan2(_finalTouchPosition.y - _firstTouchPosition.y, _finalTouchPosition.x - _firstTouchPosition.x);
+        _swipeAngle = _swipeAngle * 180 / Mathf.PI;
 
-        if (Vector3.Distance(firstTouchPosition, finalTouchPosition) > .5f)
+        if (Vector3.Distance(_firstTouchPosition, _finalTouchPosition) > .5f)
             MovePieces();
     }
 
-    private void MovePieces()
+    void MovePieces()
     {
-        previousPos = posIndex;
+        _previousPos = posIndex;
 
-        if (swipeAngle < 45 && swipeAngle > -45 && posIndex.x < SC_GameVariables.Instance.rowsSize - 1)
+        if (_swipeAngle is < 45 and > -45 && posIndex.x < SC_GameVariables.Instance.rowsSize - 1)
         {
-            otherGem = scGameLogic.GetGem(posIndex.x + 1, posIndex.y);
-            otherGem.posIndex.x--;
+            _otherGem = _scGameLogic.GetGem(posIndex.x + 1, posIndex.y);
+            _otherGem.posIndex.x--;
             posIndex.x++;
 
         }
-        else if (swipeAngle > 45 && swipeAngle <= 135 && posIndex.y < SC_GameVariables.Instance.colsSize - 1)
+        else if (_swipeAngle is > 45 and <= 135 && posIndex.y < SC_GameVariables.Instance.colsSize - 1)
         {
-            otherGem = scGameLogic.GetGem(posIndex.x, posIndex.y + 1);
-            otherGem.posIndex.y--;
+            _otherGem = _scGameLogic.GetGem(posIndex.x, posIndex.y + 1);
+            _otherGem.posIndex.y--;
             posIndex.y++;
         }
-        else if (swipeAngle < -45 && swipeAngle >= -135 && posIndex.y > 0)
+        else if (_swipeAngle is < -45 and >= -135 && posIndex.y > 0)
         {
-            otherGem = scGameLogic.GetGem(posIndex.x, posIndex.y - 1);
-            otherGem.posIndex.y++;
+            _otherGem = _scGameLogic.GetGem(posIndex.x, posIndex.y - 1);
+            _otherGem.posIndex.y++;
             posIndex.y--;
         }
-        else if (swipeAngle > 135 || swipeAngle < -135 && posIndex.x > 0)
+        else if (_swipeAngle > 135 || _swipeAngle < -135 && posIndex.x > 0)
         {
-            otherGem = scGameLogic.GetGem(posIndex.x - 1, posIndex.y);
-            otherGem.posIndex.x++;
+            _otherGem = _scGameLogic.GetGem(posIndex.x - 1, posIndex.y);
+            _otherGem.posIndex.x++;
             posIndex.x--;
         }
 
-        scGameLogic.SetGem(posIndex.x,posIndex.y, this);
-        scGameLogic.SetGem(otherGem.posIndex.x, otherGem.posIndex.y, otherGem);
+        _scGameLogic.SetGem(posIndex.x,posIndex.y, this);
+        _scGameLogic.SetGem(_otherGem.posIndex.x, _otherGem.posIndex.y, _otherGem);
 
         StartCoroutine(CheckMoveCo());
     }
 
-    public IEnumerator CheckMoveCo()
+    IEnumerator CheckMoveCo()
     {
-        scGameLogic.SetState(GlobalEnums.GameState.wait);
+        _scGameLogic.SetState(GlobalEnums.GameState.Wait);
 
         yield return new WaitForSeconds(.5f);
-        scGameLogic.FindAllMatches();
+        _scGameLogic.FindAllMatches();
 
-        if (otherGem != null)
+        if (_otherGem == null)
+            yield break;
+
+        if (isMatch == false && _otherGem.isMatch == false)
         {
-            if (isMatch == false && otherGem.isMatch == false)
-            {
-                otherGem.posIndex = posIndex;
-                posIndex = previousPos;
+            _otherGem.posIndex = posIndex;
+            posIndex = _previousPos;
 
-                scGameLogic.SetGem(posIndex.x, posIndex.y, this);
-                scGameLogic.SetGem(otherGem.posIndex.x, otherGem.posIndex.y, otherGem);
+            _scGameLogic.SetGem(posIndex.x, posIndex.y, this);
+            _scGameLogic.SetGem(_otherGem.posIndex.x, _otherGem.posIndex.y, _otherGem);
 
-                yield return new WaitForSeconds(.5f);
-                scGameLogic.SetState(GlobalEnums.GameState.move);
-            }
-            else
-            {
-                scGameLogic.DestroyMatches();
-            }
+            yield return new WaitForSeconds(.5f);
+            _scGameLogic.SetState(GlobalEnums.GameState.Move);
+        }
+        else
+        {
+            _scGameLogic.DestroyMatches();
         }
     }
 }

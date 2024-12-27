@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SC_GameVariables : MonoBehaviour
 {
@@ -18,19 +16,17 @@ public class SC_GameVariables : MonoBehaviour
     [HideInInspector]
     public int colsSize = 7;
 
-    #region Singleton
-
-    static SC_GameVariables instance;
+#region Singleton
+    static SC_GameVariables _instance;
     public static SC_GameVariables Instance
     {
         get
         {
-            if (instance == null)
-                instance = GameObject.Find("SC_GameVariables").GetComponent<SC_GameVariables>();
+            if (_instance == null)
+                _instance = GameObject.Find("SC_GameVariables").GetComponent<SC_GameVariables>();
 
-            return instance;
+            return _instance;
         }
     }
-
-    #endregion
+#endregion
 }
