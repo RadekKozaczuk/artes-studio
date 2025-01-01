@@ -16,17 +16,10 @@ public class SC_GameVariables : MonoBehaviour
     [HideInInspector]
     public int colsSize = 7;
 
-#region Singleton
-    static SC_GameVariables _instance;
-    public static SC_GameVariables Instance
-    {
-        get
-        {
-            if (_instance == null)
-                _instance = GameObject.Find("SC_GameVariables").GetComponent<SC_GameVariables>();
+    public static SC_GameVariables Instance;
 
-            return _instance;
-        }
+    void Awake()
+    {
+        Instance = this;
     }
-#endregion
 }

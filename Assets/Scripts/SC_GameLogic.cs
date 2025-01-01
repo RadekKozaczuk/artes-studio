@@ -16,14 +16,10 @@ public class SC_GameLogic : MonoBehaviour
     GameBoard _gameBoard;
 
 #region MonoBehaviour
-    void Awake()
-    {
-        Init();
-    }
-
     void Start()
     {
         score.text = Score.ToString("0");
+        Init();
     }
 
     void Update()
