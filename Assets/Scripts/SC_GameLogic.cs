@@ -7,9 +7,12 @@ public class SC_GameLogic : MonoBehaviour
 {
     public GlobalEnums.GameState CurrentState { get; private set; } = GlobalEnums.GameState.Move;
 
-    Dictionary<string, GameObject> _unityObjects;
-    readonly int _score = 0;
+    const int Score = 0;
     float _displayScore;
+
+    public TextMeshProUGUI score;
+    public Transform gemHolder;
+    
     GameBoard _gameBoard;
 
 #region MonoBehaviour
@@ -20,24 +23,19 @@ public class SC_GameLogic : MonoBehaviour
 
     void Start()
     {
-        _unityObjects["Txt_Score"].GetComponent<TextMeshProUGUI>().text = _score.ToString("0");
+        score.text = Score.ToString("0");
     }
 
     void Update()
     {
         _displayScore = Mathf.Lerp(_displayScore, _gameBoard.Score, SC_GameVariables.Instance.scoreSpeed * Time.deltaTime);
-        _unityObjects["Txt_Score"].GetComponent<TextMeshProUGUI>().text = _displayScore.ToString("0");
+        score.text = _displayScore.ToString("0");
     }
 #endregion
 
 #region Logic
     void Init()
     {
-        _unityObjects = new Dictionary<string, GameObject>();
-        GameObject[] obj = GameObject.FindGameObjectsWithTag("UnityObject");
-        foreach (GameObject g in obj)
-            _unityObjects.Add(g.name,g);
-
         _gameBoard = new GameBoard(7, 7);
         Setup();
     }
@@ -49,7 +47,7 @@ public class SC_GameLogic : MonoBehaviour
             {
                 var pos = new Vector2(x, y);
                 GameObject bgTile = Instantiate(SC_GameVariables.Instance.bgTilePrefabs, pos, Quaternion.identity);
-                bgTile.transform.SetParent(_unityObjects["GemsHolder"].transform);
+                bgTile.transform.SetParent(gemHolder);
                 bgTile.name = "BG Tile - " + x + ", " + y;
 
                 int gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
@@ -70,15 +68,15 @@ public class SC_GameLogic : MonoBehaviour
             gemToSpawn = SC_GameVariables.Instance.bomb;
 
         SC_Gem gem = Instantiate(gemToSpawn, new Vector3(position.x, position.y + SC_GameVariables.Instance.dropHeight, 0f), Quaternion.identity);
-        gem.transform.SetParent(_unityObjects["GemsHolder"].transform);
+        gem.transform.SetParent(gemHolder.transform);
         gem.name = "Gem - " + position.x + ", " + position.y;
-        _gameBoard.SetGem(position.x,position.y, gem);
-        gem.SetupGem(this,position);
+        _gameBoard.SetGem(position.x, position.y, gem);
+        gem.SetupGem(this, position);
     }
 
-    public void SetGem(int x,int y, SC_Gem gem)
+    public void SetGem(int x, int y, SC_Gem gem)
     {
-        _gameBoard.SetGem(x,y, gem);
+        _gameBoard.SetGem(x, y, gem);
     }
 
     public SC_Gem GetGem(int x, int y)
@@ -93,11 +91,11 @@ public class SC_GameLogic : MonoBehaviour
     
     public void DestroyMatches()
     {
-        foreach (SC_Gem t in _gameBoard.CurrentMatches)
-            if (t != null)
+        foreach (SC_Gem gem in _gameBoard.CurrentMatches)
+            if (gem != null)
             {
-                _gameBoard.Score += t.scoreValue;
-                DestroyMatchedGemsAt(t.posIndex);
+                _gameBoard.Score += gem.scoreValue;
+                DestroyMatchedGemsAt(gem.posIndex);
             }
 
         StartCoroutine(DecreaseRowCo());
@@ -139,7 +137,7 @@ public class SC_GameLogic : MonoBehaviour
         Instantiate(curGem.destroyEffect, new Vector2(pos.x, pos.y), Quaternion.identity);
 
         Destroy(curGem.gameObject);
-        SetGem(pos.x,pos.y, null);
+        SetGem(pos.x, pos.y, null);
     }
 
     IEnumerator FilledBoardCo()

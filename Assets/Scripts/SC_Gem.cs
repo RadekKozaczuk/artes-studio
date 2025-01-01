@@ -41,7 +41,7 @@ public class SC_Gem : MonoBehaviour
         }
     }
 
-    public void SetupGem(SC_GameLogic scGameLogic,Vector2Int position)
+    public void SetupGem(SC_GameLogic scGameLogic, Vector2Int position)
     {
         posIndex = position;
         _scGameLogic = scGameLogic;
@@ -74,7 +74,6 @@ public class SC_Gem : MonoBehaviour
             _otherGem = _scGameLogic.GetGem(posIndex.x + 1, posIndex.y);
             _otherGem.posIndex.x--;
             posIndex.x++;
-
         }
         else if (_swipeAngle is > 45 and <= 135 && posIndex.y < SC_GameVariables.Instance.colsSize - 1)
         {
@@ -95,7 +94,7 @@ public class SC_Gem : MonoBehaviour
             posIndex.x--;
         }
 
-        _scGameLogic.SetGem(posIndex.x,posIndex.y, this);
+        _scGameLogic.SetGem(posIndex.x, posIndex.y, this);
         _scGameLogic.SetGem(_otherGem.posIndex.x, _otherGem.posIndex.y, _otherGem);
 
         StartCoroutine(CheckMoveCo());

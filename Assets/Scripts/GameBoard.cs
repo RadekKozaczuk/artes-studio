@@ -67,6 +67,7 @@ public class GameBoard
                 {
                     SC_Gem leftGem = _allGems[x - 1, y];
                     SC_Gem rightGem = _allGems[x + 1, y];
+                    
                     //checking no empty spots
                     if (leftGem != null && rightGem != null)
                     {
