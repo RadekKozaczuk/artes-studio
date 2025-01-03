@@ -30,6 +30,12 @@ public class SC_Gem : MonoBehaviour
             _scGameLogic.SetGem(posIndex.x, posIndex.y, this);
         }
 
+        //bool temp = SC_Input.Instance.TryGetInput(out Vector2Int a, out Vector2Int b);
+        
+        // todo: the problem is that colliders 'collide' here
+        // todo: and to move forward we have to rewire everything
+        // todo: for safety reasons I would first commit all non-invasive changes
+        // todo: and then try to refactor it for good
         if (_mousePressed && Input.GetMouseButtonUp(0))
         {
             _mousePressed = false;
@@ -74,24 +80,32 @@ public class SC_Gem : MonoBehaviour
             _otherGem = _scGameLogic.GetGem(posIndex.x + 1, posIndex.y);
             _otherGem.posIndex.x--;
             posIndex.x++;
+            
+            Debug.Log($"RIGHT posIndex.x: {posIndex.x}, _otherGem.posIndex.x: {_otherGem.posIndex.x}");
         }
         else if (_swipeAngle is > 45 and <= 135 && posIndex.y < SC_GameVariables.Instance.colsSize - 1)
         {
             _otherGem = _scGameLogic.GetGem(posIndex.x, posIndex.y + 1);
             _otherGem.posIndex.y--;
             posIndex.y++;
+            
+            Debug.Log($"TOP posIndex.x: {posIndex.x}, _otherGem.posIndex.x: {_otherGem.posIndex.x}");
         }
         else if (_swipeAngle is < -45 and >= -135 && posIndex.y > 0)
         {
             _otherGem = _scGameLogic.GetGem(posIndex.x, posIndex.y - 1);
             _otherGem.posIndex.y++;
             posIndex.y--;
+            
+            Debug.Log($"LEFT posIndex.x: {posIndex.x}, _otherGem.posIndex.x: {_otherGem.posIndex.x}");
         }
         else if (_swipeAngle > 135 || _swipeAngle < -135 && posIndex.x > 0)
         {
             _otherGem = _scGameLogic.GetGem(posIndex.x - 1, posIndex.y);
             _otherGem.posIndex.x++;
             posIndex.x--;
+            
+            Debug.Log($"DOWN posIndex.x: {posIndex.x}, _otherGem.posIndex.x: {_otherGem.posIndex.x}");
         }
 
         _scGameLogic.SetGem(posIndex.x, posIndex.y, this);

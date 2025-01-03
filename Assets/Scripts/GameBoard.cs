@@ -8,11 +8,8 @@ public class GameBoard
     public int Height { get; }
 
     public int Width { get; }
-    
-    public int Score { get; set; }
 
     public List<SC_Gem> CurrentMatches { get; private set; } = new();
-    
     readonly SC_Gem[,] _allGems;
 #endregion
 
@@ -47,11 +44,11 @@ public class GameBoard
         _allGems[x, y] = gem;
     }
 
-    public SC_Gem GetGem(int x,int y)
+    public SC_Gem GetGem(int x, int y)
     {
        return _allGems[x, y];
     }
-
+    
     public void FindAllMatches()
     {
         CurrentMatches.Clear();
@@ -111,7 +108,7 @@ public class GameBoard
 
         CheckForBombs();
     }
-
+    
     void CheckForBombs()
     {
         // ReSharper disable once ForCanBeConvertedToForeach
@@ -146,7 +143,7 @@ public class GameBoard
             }
         }
     }
-
+    
     void MarkBombArea(Vector2Int bombPos, int blastSize)
     {
         for (int x = bombPos.x - blastSize; x <= bombPos.x + blastSize; x++)

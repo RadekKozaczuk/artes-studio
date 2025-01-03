@@ -24,7 +24,7 @@ public class SC_GameLogic : MonoBehaviour
 
     void Update()
     {
-        _displayScore = Mathf.Lerp(_displayScore, _gameBoard.Score, SC_GameVariables.Instance.scoreSpeed * Time.deltaTime);
+        _displayScore = Mathf.Lerp(_displayScore, SC_GameVariables.Instance.Score, SC_GameVariables.Instance.scoreSpeed * Time.deltaTime);
         score.text = _displayScore.ToString("0");
     }
 #endregion
@@ -90,7 +90,7 @@ public class SC_GameLogic : MonoBehaviour
         foreach (SC_Gem gem in _gameBoard.CurrentMatches)
             if (gem != null)
             {
-                _gameBoard.Score += gem.scoreValue;
+                SC_GameVariables.Instance.Score += gem.scoreValue;
                 DestroyMatchedGemsAt(gem.posIndex);
             }
 
