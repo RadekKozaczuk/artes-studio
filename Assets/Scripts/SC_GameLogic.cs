@@ -65,7 +65,7 @@ public class SC_GameLogic : MonoBehaviour
         {
             _gameBoard.UpdateGems();
 
-            if (!AnythingMoves())
+            if (!_coroutineRunning && !AnythingMoves())
                 CurrentState = GlobalEnums.GameState.Move;
         }
         else if (CurrentState == GlobalEnums.GameState.Move)
@@ -78,20 +78,30 @@ public class SC_GameLogic : MonoBehaviour
                 SC_Gem currentGem = _gameBoard.GetGem(current);
                 SC_Gem otherGem = _gameBoard.GetGem(other);
 
+                // set positions
+                (currentGem.PosIndex, otherGem.PosIndex) = (otherGem.PosIndex, currentGem.PosIndex);
+                
                 // set (swap) references
-                _gameBoard.SetGem(current.x, current.y, currentGem);
-                _gameBoard.SetGem(other.x, other.y, otherGem);
+                _gameBoard.SetGem(current.x, current.y, otherGem);
+                _gameBoard.SetGem(other.x, other.y, currentGem);
 
                 StartCoroutine(CheckMoveCo(currentGem, otherGem));
             }
         }
     }
+
+    static bool _coroutineRunning;
     
     IEnumerator CheckMoveCo(SC_Gem current, SC_Gem other)
     {
+        _coroutineRunning = true;
+        
         yield return new WaitForSeconds(.5f);
 
         _gameBoard.FindAllMatches();
+        
+        // todo: found was zero despite there clearly being a match
+        Debug.Log("found: " + _gameBoard.CurrentMatches.Count);
 
         if (current.isMatch == false && other.isMatch == false)
         {
@@ -101,6 +111,8 @@ public class SC_GameLogic : MonoBehaviour
             _gameBoard.SetGem(other.PosIndex.x, other.PosIndex.y, other);
 
             yield return new WaitForSeconds(.5f);
+
+            _coroutineRunning = false;
         }
         else
         {
@@ -223,6 +235,7 @@ public class SC_GameLogic : MonoBehaviour
         {
             yield return new WaitForSeconds(0.5f);
             CurrentState = GlobalEnums.GameState.Move;
+            _coroutineRunning = false;
         }
     }
 
