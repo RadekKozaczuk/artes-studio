@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -18,6 +19,18 @@ public class GameBoard
         Height = height;
         Width = width;
         _allGems = new SC_Gem[Width, Height];
+    }
+
+    public void UpdateGems()
+    {
+        for (int i = 0; i < 7; i++)
+            for (int j = 0; j < 7; j++)
+            {
+                // todo: for now lets ignore nulls
+                // todo: in the future, object will be reused
+                if (_allGems[i, j])
+                    _allGems[i, j].UpdatePosition();
+            }
     }
     
     public bool MatchesAt(Vector2Int positionToCheck, SC_Gem gemToCheck)
@@ -49,6 +62,11 @@ public class GameBoard
        return _allGems[x, y];
     }
     
+    public SC_Gem GetGem(Vector2Int coordinates)
+    {
+        return _allGems[coordinates.x, coordinates.y];
+    }
+    
     public void FindAllMatches()
     {
         CurrentMatches.Clear();
@@ -57,7 +75,7 @@ public class GameBoard
             for (int y = 0; y < Height; y++)
             {
                 SC_Gem currentGem = _allGems[x, y];
-                if (currentGem == null)
+                if (!currentGem)
                     continue;
 
                 if (x > 0 && x < Width - 1)
@@ -66,7 +84,7 @@ public class GameBoard
                     SC_Gem rightGem = _allGems[x + 1, y];
                     
                     //checking no empty spots
-                    if (leftGem != null && rightGem != null)
+                    if (leftGem && rightGem)
                     {
                         //Match
                         if (leftGem.type == currentGem.type && rightGem.type == currentGem.type)
@@ -88,7 +106,7 @@ public class GameBoard
                 SC_Gem bellowGem = _allGems[x, y + 1];
 
                 //checking no empty spots
-                if (aboveGem == null || bellowGem == null)
+                if (!aboveGem || !bellowGem)
                     continue;
 
                 //Match
@@ -115,30 +133,30 @@ public class GameBoard
         for (int i = 0; i < CurrentMatches.Count; i++)
         {
             SC_Gem gem = CurrentMatches[i];
-            int x = gem.posIndex.x;
-            int y = gem.posIndex.y;
+            int x = gem.PosIndex.x;
+            int y = gem.PosIndex.y;
 
-            if (gem.posIndex.x > 0)
+            if (gem.PosIndex.x > 0)
             {
-                if (_allGems[x - 1, y] != null && _allGems[x - 1, y].type == GlobalEnums.GemType.Bomb)
+                if (_allGems[x - 1, y] && _allGems[x - 1, y].type == GlobalEnums.GemType.Bomb)
                     MarkBombArea(new Vector2Int(x - 1, y), _allGems[x - 1, y].blastSize);
             }
 
-            if (gem.posIndex.x + 1 < Width)
+            if (gem.PosIndex.x + 1 < Width)
             {
-                if (_allGems[x + 1, y] != null && _allGems[x + 1, y].type == GlobalEnums.GemType.Bomb)
+                if (_allGems[x + 1, y] && _allGems[x + 1, y].type == GlobalEnums.GemType.Bomb)
                     MarkBombArea(new Vector2Int(x + 1, y), _allGems[x + 1, y].blastSize);
             }
 
-            if (gem.posIndex.y > 0)
+            if (gem.PosIndex.y > 0)
             {
-                if (_allGems[x, y - 1] != null && _allGems[x, y - 1].type == GlobalEnums.GemType.Bomb)
+                if (_allGems[x, y - 1] && _allGems[x, y - 1].type == GlobalEnums.GemType.Bomb)
                     MarkBombArea(new Vector2Int(x, y - 1), _allGems[x, y - 1].blastSize);
             }
 
-            if (gem.posIndex.y + 1 < Height)
+            if (gem.PosIndex.y + 1 < Height)
             {
-                if (_allGems[x, y + 1] != null && _allGems[x, y + 1].type == GlobalEnums.GemType.Bomb)
+                if (_allGems[x, y + 1] && _allGems[x, y + 1].type == GlobalEnums.GemType.Bomb)
                     MarkBombArea(new Vector2Int(x, y + 1), _allGems[x, y + 1].blastSize);
             }
         }
@@ -152,7 +170,7 @@ public class GameBoard
                 if (x < 0 || x >= Width || y < 0 || y >= Height)
                     continue;
 
-                if (_allGems[x, y] == null)
+                if (!_allGems[x, y])
                     continue;
 
                 _allGems[x, y].isMatch = true;
