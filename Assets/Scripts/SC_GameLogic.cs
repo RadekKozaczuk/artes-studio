@@ -14,8 +14,6 @@ public class SC_GameLogic : MonoBehaviour
         private set
         {
             Assert.IsFalse(_currentState == value, "Assigning the same state is not allowed.");
-            
-            Debug.Log($"Current state set to: {value}");
             _currentState = value;
         }
     } 
@@ -78,7 +76,7 @@ public class SC_GameLogic : MonoBehaviour
                 SC_Gem otherGem = _gameBoard.GetGem(other);
 
                 // set positions
-                (currentGem.PosIndex, otherGem.PosIndex) = (otherGem.PosIndex, currentGem.PosIndex);
+                (currentGem.posIndex, otherGem.posIndex) = (otherGem.posIndex, currentGem.posIndex);
                 
                 // set (swap) references
                 _gameBoard.SetGem(current.x, current.y, otherGem);
@@ -99,12 +97,12 @@ public class SC_GameLogic : MonoBehaviour
 
         _gameBoard.FindAllMatches();
         
-        if (!_gameBoard.GetMatch(current.PosIndex) && !_gameBoard.GetMatch(other.PosIndex))
+        if (!_gameBoard.GetMatch(current.posIndex) && !_gameBoard.GetMatch(other.posIndex))
         {
-            (other.PosIndex, current.PosIndex) = (current.PosIndex, other.PosIndex);
+            (other.posIndex, current.posIndex) = (current.posIndex, other.posIndex);
 
-            _gameBoard.SetGem(current.PosIndex.x, current.PosIndex.y, current);
-            _gameBoard.SetGem(other.PosIndex.x, other.PosIndex.y, other);
+            _gameBoard.SetGem(current.posIndex.x, current.posIndex.y, current);
+            _gameBoard.SetGem(other.posIndex.x, other.posIndex.y, other);
 
             yield return new WaitForSeconds(.5f);
 
@@ -137,7 +135,7 @@ public class SC_GameLogic : MonoBehaviour
                 int gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
 
                 int iterations = 0;
-                while (_gameBoard.MatchesAt(new Vector2Int(x, y), SC_GameVariables.Instance.gems[gemToUse]) && iterations < 100)
+                while (_gameBoard.MatchesAt(new Vector2Int(x, y), SC_GameVariables.Instance.gems[gemToUse].type) && iterations < 100)
                 {
                     gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
                     iterations++;
@@ -172,7 +170,7 @@ public class SC_GameLogic : MonoBehaviour
                     if (gem)
                     {
                         SC_GameVariables.Instance.Score += SC_GameVariables.Instance.scoreValue;
-                        DestroyMatchedGemsAt(gem.PosIndex);
+                        DestroyMatchedGemsAt(gem.posIndex);
                     }
                 }
         
@@ -195,7 +193,7 @@ public class SC_GameLogic : MonoBehaviour
                 }
                 else if (nullCounter > 0)
                 {
-                    curGem.PosIndex = new Vector2Int(curGem.PosIndex.x, curGem.PosIndex.y - nullCounter);
+                    curGem.posIndex = new Vector2Int(curGem.posIndex.x, curGem.posIndex.y - nullCounter);
                     _gameBoard.SetGem(x, y - nullCounter, curGem);
                     _gameBoard.SetGem(x, y, null);
                 }

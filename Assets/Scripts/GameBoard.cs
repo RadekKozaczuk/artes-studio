@@ -50,21 +50,18 @@ public class GameBoard
             }
     }
     
-    public bool MatchesAt(Vector2Int positionToCheck, SC_Gem gemToCheck)
+    public bool MatchesAt(Vector2Int positionToCheck, GlobalEnums.GemType gemType)
     {
-        if (positionToCheck.x > 1)
-        {
-            if (_allGems[positionToCheck.x - 1, positionToCheck.y].type == gemToCheck.type &&
-                _allGems[positionToCheck.x - 2, positionToCheck.y].type == gemToCheck.type)
+        int x = positionToCheck.x;
+        int y = positionToCheck.y;
+        
+        if (x > 1)
+            if (_allGems[x - 1, y].type == gemType && _allGems[x - 2, y].type == gemType)
                 return true;
-        }
 
-        if (positionToCheck.y > 1)
-        {
-            if (_allGems[positionToCheck.x, positionToCheck.y - 1].type == gemToCheck.type &&
-                _allGems[positionToCheck.x, positionToCheck.y - 2].type == gemToCheck.type)
+        if (y > 1)
+            if (_allGems[x, y - 1].type == gemType && _allGems[x, y - 2].type == gemType)
                 return true;
-        }
 
         return false;
     }
@@ -138,48 +135,46 @@ public class GameBoard
         for (int x = 0; x < Width; x++)
             for (int y = 0; y < Height; y++)
             {
-                SC_Gem gem = _allGems[x, y];
-
-                if (gem.PosIndex.x > 0) // todo: probably just x > 0
+                if (x > 0) // todo: probably just x > 0
                 {
                     SC_Gem otherGem = _allGems[x - 1, y];
                     
                     if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
-                        MarkBombArea(new Vector2Int(x - 1, y));
+                        MarkBombArea(x - 1, y);
                 }
 
-                if (gem.PosIndex.x + 1 < Width)
+                if (x + 1 < Width)
                 {
                     SC_Gem otherGem = _allGems[x + 1, y];
                     
                     if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
-                        MarkBombArea(new Vector2Int(x + 1, y));
+                        MarkBombArea(x + 1, y);
                 }
 
-                if (gem.PosIndex.y > 0)
+                if (y > 0)
                 {
                     SC_Gem otherGem = _allGems[x, y - 1];
                     
                     if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
-                        MarkBombArea(new Vector2Int(x, y - 1));
+                        MarkBombArea(x, y - 1);
                 }
 
-                if (gem.PosIndex.y + 1 < Height)
+                if (y + 1 < Height)
                 {
                     SC_Gem otherGem = _allGems[x, y + 1];
                     
                     if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
-                        MarkBombArea(new Vector2Int(x, y + 1));
+                        MarkBombArea(x, y + 1);
                 }
             }
     }
     
-    void MarkBombArea(Vector2Int bombPos) // todo: could be just "int x, int y"
+    void MarkBombArea(int posX, int posY)
     {
         int blastSize = SC_GameVariables.Instance.blastSize;
         
-        for (int x = bombPos.x - blastSize; x <= bombPos.x + blastSize; x++)
-            for (int y = bombPos.y - blastSize; y <= bombPos.y + blastSize; y++)
+        for (int x = posX - blastSize; x <= posX + blastSize; x++)
+            for (int y = posY - blastSize; y <= posY + blastSize; y++)
             {
                 if (x < 0 || x >= Width || y < 0 || y >= Height)
                     continue;
