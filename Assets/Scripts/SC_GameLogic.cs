@@ -7,7 +7,7 @@ using Random = UnityEngine.Random;
 
 public class SC_GameLogic : MonoBehaviour
 {
-    public GlobalEnums.GameState CurrentState { get; private set; } = GlobalEnums.GameState.Move;
+    public GlobalEnums.GameState CurrentState { get; private set; } = GlobalEnums.GameState.Wait;
 
     const int Score = 0;
     float _displayScore;
@@ -24,7 +24,7 @@ public class SC_GameLogic : MonoBehaviour
     // otherwise Move state (player can perform a move)
     readonly Action<int, int> _gemMovementFinishedCallback = (x, y) =>
     {
-        Movement[x, y] = true;
+        Movement[x, y] = false;
     };
 
     // which pieces are moving
@@ -40,9 +40,9 @@ public class SC_GameLogic : MonoBehaviour
     bool AnythingMoves()
     {
         // check if stopped moving
-        for (int i = 0; i < 7; i++)
-            for (int j = 0; j < 7; j++)
-                if (Movement[i, j])
+        for (int x = 0; x < _gameBoard.Width; x++)
+            for (int y = 0; y < _gameBoard.Height; y++)
+                if (Movement[x, y])
                     return true;
 
         return false;
@@ -69,18 +69,13 @@ public class SC_GameLogic : MonoBehaviour
                 // change state
                 CurrentState = GlobalEnums.GameState.Wait;
 
-                // update positions
                 SC_Gem currentGem = _gameBoard.GetGem(current);
-                currentGem.PosIndex = current;
-
                 SC_Gem otherGem = _gameBoard.GetGem(other);
-                otherGem.PosIndex = other;
 
                 // set (swap) references
                 _gameBoard.SetGem(current.x, current.y, currentGem);
                 _gameBoard.SetGem(other.x, other.y, otherGem);
 
-                // pozniej odpal korutyne
                 StartCoroutine(CheckMoveCo(currentGem, otherGem));
             }
         }
@@ -100,8 +95,6 @@ public class SC_GameLogic : MonoBehaviour
             _gameBoard.SetGem(other.PosIndex.x, other.PosIndex.y, other);
 
             yield return new WaitForSeconds(.5f);
-
-            CurrentState = GlobalEnums.GameState.Move;
         }
         else
         {
@@ -151,15 +144,10 @@ public class SC_GameLogic : MonoBehaviour
         gem.SetupGem(position, _gemMovementFinishedCallback);
     }
 
-    public SC_Gem GetGem(int x, int y)
-    {
-        return _gameBoard.GetGem(x, y);
-    }
-
     void DestroyMatches()
     {
         foreach (SC_Gem gem in _gameBoard.CurrentMatches)
-            if (gem != null)
+            if (gem)
             {
                 SC_GameVariables.Instance.Score += gem.scoreValue;
                 DestroyMatchedGemsAt(gem.PosIndex);
@@ -198,7 +186,7 @@ public class SC_GameLogic : MonoBehaviour
     void DestroyMatchedGemsAt(Vector2Int pos)
     {
         SC_Gem curGem = _gameBoard.GetGem(pos.x, pos.y);
-        if (curGem == null)
+        if (!curGem)
             return;
 
         Instantiate(curGem.destroyEffect, new Vector2(pos.x, pos.y), Quaternion.identity);
@@ -231,7 +219,7 @@ public class SC_GameLogic : MonoBehaviour
             for (int y = 0; y < _gameBoard.Height; y++)
             {
                 SC_Gem curGem = _gameBoard.GetGem(x, y);
-                if (curGem != null)
+                if (curGem)
                     continue;
 
                 int gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);

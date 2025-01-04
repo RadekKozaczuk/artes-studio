@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class SC_Gem : MonoBehaviour
 {
@@ -12,11 +13,14 @@ public class SC_Gem : MonoBehaviour
         get => _posIndex;
         set
         {
+            Assert.IsFalse(_posIndex == value, "Assigning the same position is not allowed");
+            
             _posIndex = value;
+            Debug.Log($"Movement for {_posIndex.x}, {_posIndex.y} set to TRUE");
             SC_GameLogic.Movement[_posIndex.x, _posIndex.y] = true;
         }
     }
-    Vector2Int _posIndex;
+    Vector2Int _posIndex = new (int.MinValue, int.MinValue);
 
     public GlobalEnums.GemType type;
     public bool isMatch;

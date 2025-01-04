@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -23,13 +22,13 @@ public class GameBoard
 
     public void UpdateGems()
     {
-        for (int i = 0; i < 7; i++)
-            for (int j = 0; j < 7; j++)
+        for (int x = 0; x < Width; x++)
+            for (int y = 0; y < Height; y++)
             {
                 // todo: for now lets ignore nulls
                 // todo: in the future, object will be reused
-                if (_allGems[i, j])
-                    _allGems[i, j].UpdatePosition();
+                if (_allGems[x, y])
+                    _allGems[x, y].UpdatePosition();
             }
     }
     
