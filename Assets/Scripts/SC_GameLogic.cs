@@ -1,11 +1,25 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Assertions;
+using Random = UnityEngine.Random;
+using Vector2Int = UnityEngine.Vector2Int;
 
 public class SC_GameLogic : MonoBehaviour
 {
-    public GlobalEnums.GameState CurrentState { get; private set; } = GlobalEnums.GameState.Move;
+    public GlobalEnums.GameState CurrentState
+    {
+        get => _currentState;
+        private set
+        {
+            Assert.IsFalse(_currentState == value, "Assigning the same state is not allowed.");
+            
+            Debug.Log($"Current state set to: {value}");
+            _currentState = value;
+        }
+    } 
+    GlobalEnums.GameState _currentState = GlobalEnums.GameState.Wait;
 
     const int Score = 0;
     float _displayScore;
@@ -15,6 +29,12 @@ public class SC_GameLogic : MonoBehaviour
     
     GameBoard _gameBoard;
 
+    [SerializeField]
+    SC_Input _scInput;
+
+    // which pieces are moving
+    public static readonly bool[,] Movement = new bool[7, 7];
+    
 #region MonoBehaviour
     void Start()
     {
@@ -22,10 +42,78 @@ public class SC_GameLogic : MonoBehaviour
         Init();
     }
 
+    bool AnythingMoves()
+    {
+        // check if stopped moving
+        for (int x = 0; x < _gameBoard.Width; x++)
+            for (int y = 0; y < _gameBoard.Height; y++)
+                if (Movement[x, y])
+                    return true;
+
+        return false;
+    }
+
     void Update()
     {
+        // todo: this should not be updated every frame, should on change 
         _displayScore = Mathf.Lerp(_displayScore, SC_GameVariables.Instance.Score, SC_GameVariables.Instance.scoreSpeed * Time.deltaTime);
         score.text = _displayScore.ToString("0");
+
+        // if in wait then check movement table 
+        if (CurrentState == GlobalEnums.GameState.Wait)
+        {
+            _gameBoard.UpdateGems();
+
+            if (!_coroutineRunning && !AnythingMoves())
+                CurrentState = GlobalEnums.GameState.Move;
+        }
+        else if (CurrentState == GlobalEnums.GameState.Move)
+        {
+            if (_scInput.TryGetInput(out Vector2Int current, out Vector2Int other))
+            {
+                // change state
+                CurrentState = GlobalEnums.GameState.Wait;
+
+                SC_Gem currentGem = _gameBoard.GetGem(current);
+                SC_Gem otherGem = _gameBoard.GetGem(other);
+
+                // set positions
+                (currentGem.PosIndex, otherGem.PosIndex) = (otherGem.PosIndex, currentGem.PosIndex);
+                
+                // set (swap) references
+                _gameBoard.SetGem(current.x, current.y, otherGem);
+                _gameBoard.SetGem(other.x, other.y, currentGem);
+
+                StartCoroutine(CheckMoveCo(currentGem, otherGem));
+            }
+        }
+    }
+
+    static bool _coroutineRunning;
+    
+    IEnumerator CheckMoveCo(SC_Gem current, SC_Gem other)
+    {
+        _coroutineRunning = true;
+        
+        yield return new WaitForSeconds(.5f);
+
+        _gameBoard.FindAllMatches();
+        
+        if (current.isMatch == false && other.isMatch == false)
+        {
+            (other.PosIndex, current.PosIndex) = (current.PosIndex, other.PosIndex);
+
+            _gameBoard.SetGem(current.PosIndex.x, current.PosIndex.y, current);
+            _gameBoard.SetGem(other.PosIndex.x, other.PosIndex.y, other);
+
+            yield return new WaitForSeconds(.5f);
+
+            _coroutineRunning = false;
+        }
+        else
+        {
+            DestroyMatches();
+        }
     }
 #endregion
 
@@ -67,31 +155,23 @@ public class SC_GameLogic : MonoBehaviour
         gem.transform.SetParent(gemHolder.transform);
         gem.name = "Gem - " + position.x + ", " + position.y;
         _gameBoard.SetGem(position.x, position.y, gem);
-        gem.SetupGem(this, position);
-    }
-
-    public void SetGem(int x, int y, SC_Gem gem)
-    {
-        _gameBoard.SetGem(x, y, gem);
-    }
-
-    public SC_Gem GetGem(int x, int y)
-    {
-        return _gameBoard.GetGem(x, y);
-    }
-
-    public void SetState(GlobalEnums.GameState currentState)
-    {
-        CurrentState = currentState;
+        gem.SetupGem(position, MovementFinished);
     }
     
-    public void DestroyMatches()
+    // if anything is moving then we are in Wait state (waiting for movement to finish)
+    // otherwise Move state (player can perform a move)
+    void MovementFinished(int x, int y)
+    {
+        Movement[x, y] = false;
+    }
+
+    void DestroyMatches()
     {
         foreach (SC_Gem gem in _gameBoard.CurrentMatches)
-            if (gem != null)
+            if (gem)
             {
                 SC_GameVariables.Instance.Score += gem.scoreValue;
-                DestroyMatchedGemsAt(gem.posIndex);
+                DestroyMatchedGemsAt(gem.PosIndex);
             }
 
         StartCoroutine(DecreaseRowCo());
@@ -113,9 +193,9 @@ public class SC_GameLogic : MonoBehaviour
                 }
                 else if (nullCounter > 0)
                 {
-                    curGem.posIndex.y -= nullCounter;
-                    SetGem(x, y - nullCounter, curGem);
-                    SetGem(x, y, null);
+                    curGem.PosIndex = new Vector2Int(curGem.PosIndex.x, curGem.PosIndex.y - nullCounter);
+                    _gameBoard.SetGem(x, y - nullCounter, curGem);
+                    _gameBoard.SetGem(x, y, null);
                 }
             }
             nullCounter = 0;
@@ -127,13 +207,13 @@ public class SC_GameLogic : MonoBehaviour
     void DestroyMatchedGemsAt(Vector2Int pos)
     {
         SC_Gem curGem = _gameBoard.GetGem(pos.x, pos.y);
-        if (curGem == null)
+        if (!curGem)
             return;
 
         Instantiate(curGem.destroyEffect, new Vector2(pos.x, pos.y), Quaternion.identity);
 
         Destroy(curGem.gameObject);
-        SetGem(pos.x, pos.y, null);
+        _gameBoard.SetGem(pos.x, pos.y, null);
     }
 
     IEnumerator FilledBoardCo()
@@ -151,6 +231,7 @@ public class SC_GameLogic : MonoBehaviour
         {
             yield return new WaitForSeconds(0.5f);
             CurrentState = GlobalEnums.GameState.Move;
+            _coroutineRunning = false;
         }
     }
 
@@ -160,7 +241,7 @@ public class SC_GameLogic : MonoBehaviour
             for (int y = 0; y < _gameBoard.Height; y++)
             {
                 SC_Gem curGem = _gameBoard.GetGem(x, y);
-                if (curGem != null)
+                if (curGem)
                     continue;
 
                 int gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
@@ -187,11 +268,5 @@ public class SC_GameLogic : MonoBehaviour
         foreach (SC_Gem g in foundGems)
             Destroy(g.gameObject);
     }
-    
-    public void FindAllMatches()
-    {
-        _gameBoard.FindAllMatches();
-    }
-
 #endregion
 }
