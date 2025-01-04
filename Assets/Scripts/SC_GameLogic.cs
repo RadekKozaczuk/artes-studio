@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -56,7 +55,7 @@ public class SC_GameLogic : MonoBehaviour
 
     void Update()
     {
-        // todo: this is stupidly updated every frame, should on change 
+        // todo: this should not be updated every frame, should on change 
         _displayScore = Mathf.Lerp(_displayScore, SC_GameVariables.Instance.Score, SC_GameVariables.Instance.scoreSpeed * Time.deltaTime);
         score.text = _displayScore.ToString("0");
 
@@ -100,9 +99,6 @@ public class SC_GameLogic : MonoBehaviour
 
         _gameBoard.FindAllMatches();
         
-        // todo: found was zero despite there clearly being a match
-        Debug.Log("found: " + _gameBoard.CurrentMatches.Count);
-
         if (current.isMatch == false && other.isMatch == false)
         {
             (other.PosIndex, current.PosIndex) = (current.PosIndex, other.PosIndex);
