@@ -10,23 +10,19 @@ public class SC_Gem : MonoBehaviour
     /// </summary>
     public Vector2Int PosIndex
     {
-        get => _posIndex;
+        get => _posIndex; // todo: for now this has two meaning: id, and position
         set
         {
             Assert.IsFalse(_posIndex == value, "Assigning the same position is not allowed");
             
             _posIndex = value;
-            Debug.Log($"Movement for {_posIndex.x}, {_posIndex.y} set to TRUE");
             SC_GameLogic.Movement[_posIndex.x, _posIndex.y] = true;
         }
     }
     Vector2Int _posIndex = new (int.MinValue, int.MinValue);
 
     public GlobalEnums.GemType type;
-    public bool isMatch;
     public GameObject destroyEffect;
-    public int scoreValue = 10;
-    public int blastSize = 1;
 
     Action<int, int> _movementFinishedCallback;
 

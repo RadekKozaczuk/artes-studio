@@ -29,16 +29,12 @@ public class SC_Input : MonoBehaviour
             _mousePressed = false;
             _finalTouchPosition = _camera.ScreenToWorldPoint(Input.mousePosition);
             
-            //Debug.Log($"INPUT V2 first: {_firstTouchPosition}, final: {_finalTouchPosition}");
-
             // todo: should be resistant to the gem slot size and the number of rows and columns
             // screen position to board coordinates mapping
             int firstX = (int)(_firstTouchPosition.x + 0.5f);
             int firstY = (int)(_firstTouchPosition.y + 0.5f);
             int finalX = (int)(_finalTouchPosition.x + 0.5f);
             int finalY = (int)(_finalTouchPosition.y + 0.5f);
-            
-            //Debug.Log($"INPUT V2 first: {firstX},{firstY}, final: {finalX},{finalY}");
             
             // distance in board elements cannot be bigger than 1
             int distanceX = Math.Abs(finalX - firstX);
@@ -49,7 +45,6 @@ public class SC_Input : MonoBehaviour
                 {
                     current = new Vector2Int(firstX, firstY);
                     other = new Vector2Int(finalX, finalY);
-                    Debug.Log($"INPUT first: ({firstX},{firstY}) final: ({finalX},{finalY})");
                     return true;
                 }
         }

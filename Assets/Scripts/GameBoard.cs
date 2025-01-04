@@ -1,16 +1,33 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GameBoard
 {
+#region Properties
+    public int MatchCount 
+    { 
+        get
+        {
+            int count = 0;
+
+            for (int x = 0; x < Width; x++)
+                for (int y = 0; y < Height; y++)
+                {
+                    if (_matches[x, y])
+                        count++;
+                }
+
+            return count;
+        }
+    }
+#endregion
+    
 #region Variables
     public int Height { get; }
 
     public int Width { get; }
 
-    public List<SC_Gem> CurrentMatches { get; private set; } = new();
     readonly SC_Gem[,] _allGems;
+    readonly bool[,] _matches;
 #endregion
 
     public GameBoard(int width, int height)
@@ -18,6 +35,7 @@ public class GameBoard
         Height = height;
         Width = width;
         _allGems = new SC_Gem[Width, Height];
+        _matches = new bool[Width, Height];
     }
 
     public void UpdateGems()
@@ -51,25 +69,22 @@ public class GameBoard
         return false;
     }
 
-    public void SetGem(int x, int y, SC_Gem gem)
-    {
-        _allGems[x, y] = gem;
-    }
+    public bool GetMatch(Vector2Int coordinates) => _matches[coordinates.x, coordinates.y];
+    
+    public bool GetMatch(int x, int y) => _matches[x, y];
 
-    public SC_Gem GetGem(int x, int y)
-    {
-       return _allGems[x, y];
-    }
-    
-    public SC_Gem GetGem(Vector2Int coordinates)
-    {
-        return _allGems[coordinates.x, coordinates.y];
-    }
-    
+    public void SetGem(int x, int y, SC_Gem gem) => _allGems[x, y] = gem;
+
+    public SC_Gem GetGem(int x, int y) => _allGems[x, y];
+
+    public SC_Gem GetGem(Vector2Int coordinates) => _allGems[coordinates.x, coordinates.y];
+
     public void FindAllMatches()
     {
-        CurrentMatches.Clear();
-
+        for (int x = 0; x < Width; x++)
+            for (int y = 0; y < Height; y++)
+                _matches[x, y] = false;
+        
         for (int x = 0; x < Width; x++)
             for (int y = 0; y < Height; y++)
             {
@@ -88,12 +103,9 @@ public class GameBoard
                         //Match
                         if (leftGem.type == currentGem.type && rightGem.type == currentGem.type)
                         {
-                            currentGem.isMatch = true;
-                            leftGem.isMatch = true;
-                            rightGem.isMatch = true;
-                            CurrentMatches.Add(currentGem);
-                            CurrentMatches.Add(leftGem);
-                            CurrentMatches.Add(rightGem);
+                            _matches[x, y] = true;
+                            _matches[x - 1, y] = true;
+                            _matches[x + 1, y] = true;
                         }
                     }
                 }
@@ -111,17 +123,11 @@ public class GameBoard
                 //Match
                 if (aboveGem.type == currentGem.type && bellowGem.type == currentGem.type)
                 {
-                    currentGem.isMatch = true;
-                    aboveGem.isMatch = true;
-                    bellowGem.isMatch = true;
-                    CurrentMatches.Add(currentGem);
-                    CurrentMatches.Add(aboveGem);
-                    CurrentMatches.Add(bellowGem);
+                    _matches[x, y] = true;
+                    _matches[x, y - 1] = true;
+                    _matches[x, y + 1] = true;
                 }
             }
-
-        if (CurrentMatches.Count > 0)
-            CurrentMatches = CurrentMatches.Distinct().ToList();
 
         CheckForBombs();
     }
@@ -129,40 +135,49 @@ public class GameBoard
     void CheckForBombs()
     {
         // ReSharper disable once ForCanBeConvertedToForeach
-        for (int i = 0; i < CurrentMatches.Count; i++)
-        {
-            SC_Gem gem = CurrentMatches[i];
-            int x = gem.PosIndex.x;
-            int y = gem.PosIndex.y;
-
-            if (gem.PosIndex.x > 0)
+        for (int x = 0; x < Width; x++)
+            for (int y = 0; y < Height; y++)
             {
-                if (_allGems[x - 1, y] && _allGems[x - 1, y].type == GlobalEnums.GemType.Bomb)
-                    MarkBombArea(new Vector2Int(x - 1, y), _allGems[x - 1, y].blastSize);
-            }
+                SC_Gem gem = _allGems[x, y];
 
-            if (gem.PosIndex.x + 1 < Width)
-            {
-                if (_allGems[x + 1, y] && _allGems[x + 1, y].type == GlobalEnums.GemType.Bomb)
-                    MarkBombArea(new Vector2Int(x + 1, y), _allGems[x + 1, y].blastSize);
-            }
+                if (gem.PosIndex.x > 0) // todo: probably just x > 0
+                {
+                    SC_Gem otherGem = _allGems[x - 1, y];
+                    
+                    if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
+                        MarkBombArea(new Vector2Int(x - 1, y));
+                }
 
-            if (gem.PosIndex.y > 0)
-            {
-                if (_allGems[x, y - 1] && _allGems[x, y - 1].type == GlobalEnums.GemType.Bomb)
-                    MarkBombArea(new Vector2Int(x, y - 1), _allGems[x, y - 1].blastSize);
-            }
+                if (gem.PosIndex.x + 1 < Width)
+                {
+                    SC_Gem otherGem = _allGems[x + 1, y];
+                    
+                    if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
+                        MarkBombArea(new Vector2Int(x + 1, y));
+                }
 
-            if (gem.PosIndex.y + 1 < Height)
-            {
-                if (_allGems[x, y + 1] && _allGems[x, y + 1].type == GlobalEnums.GemType.Bomb)
-                    MarkBombArea(new Vector2Int(x, y + 1), _allGems[x, y + 1].blastSize);
+                if (gem.PosIndex.y > 0)
+                {
+                    SC_Gem otherGem = _allGems[x, y - 1];
+                    
+                    if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
+                        MarkBombArea(new Vector2Int(x, y - 1));
+                }
+
+                if (gem.PosIndex.y + 1 < Height)
+                {
+                    SC_Gem otherGem = _allGems[x, y + 1];
+                    
+                    if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
+                        MarkBombArea(new Vector2Int(x, y + 1));
+                }
             }
-        }
     }
     
-    void MarkBombArea(Vector2Int bombPos, int blastSize)
+    void MarkBombArea(Vector2Int bombPos) // todo: could be just "int x, int y"
     {
+        int blastSize = SC_GameVariables.Instance.blastSize;
+        
         for (int x = bombPos.x - blastSize; x <= bombPos.x + blastSize; x++)
             for (int y = bombPos.y - blastSize; y <= bombPos.y + blastSize; y++)
             {
@@ -172,11 +187,8 @@ public class GameBoard
                 if (!_allGems[x, y])
                     continue;
 
-                _allGems[x, y].isMatch = true;
-                CurrentMatches.Add(_allGems[x, y]);
+                _matches[x, y] = true;
             }
-
-        CurrentMatches = CurrentMatches.Distinct().ToList();
     }
 }
 

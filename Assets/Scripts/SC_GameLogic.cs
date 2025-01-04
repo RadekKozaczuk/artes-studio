@@ -99,7 +99,7 @@ public class SC_GameLogic : MonoBehaviour
 
         _gameBoard.FindAllMatches();
         
-        if (current.isMatch == false && other.isMatch == false)
+        if (!_gameBoard.GetMatch(current.PosIndex) && !_gameBoard.GetMatch(other.PosIndex))
         {
             (other.PosIndex, current.PosIndex) = (current.PosIndex, other.PosIndex);
 
@@ -160,20 +160,22 @@ public class SC_GameLogic : MonoBehaviour
     
     // if anything is moving then we are in Wait state (waiting for movement to finish)
     // otherwise Move state (player can perform a move)
-    void MovementFinished(int x, int y)
-    {
-        Movement[x, y] = false;
-    }
+    static void MovementFinished(int x, int y) => Movement[x, y] = false;
 
     void DestroyMatches()
     {
-        foreach (SC_Gem gem in _gameBoard.CurrentMatches)
-            if (gem)
-            {
-                SC_GameVariables.Instance.Score += gem.scoreValue;
-                DestroyMatchedGemsAt(gem.PosIndex);
-            }
-
+        for (int x = 0; x < _gameBoard.Width; x++)
+            for (int y = 0; y < _gameBoard.Height; y++)
+                if (_gameBoard.GetMatch(x, y))
+                {
+                    SC_Gem gem = _gameBoard.GetGem(x, y);
+                    if (gem)
+                    {
+                        SC_GameVariables.Instance.Score += SC_GameVariables.Instance.scoreValue;
+                        DestroyMatchedGemsAt(gem.PosIndex);
+                    }
+                }
+        
         StartCoroutine(DecreaseRowCo());
     }
 
@@ -222,7 +224,7 @@ public class SC_GameLogic : MonoBehaviour
         RefillBoard();
         yield return new WaitForSeconds(0.5f);
         _gameBoard.FindAllMatches();
-        if (_gameBoard.CurrentMatches.Count > 0)
+        if (_gameBoard.MatchCount > 0)
         {
             yield return new WaitForSeconds(0.5f);
             DestroyMatches();
