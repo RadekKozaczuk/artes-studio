@@ -1,13 +1,26 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Assertions;
 using Random = UnityEngine.Random;
+using Vector2Int = UnityEngine.Vector2Int;
 
 public class SC_GameLogic : MonoBehaviour
 {
-    public GlobalEnums.GameState CurrentState { get; private set; } = GlobalEnums.GameState.Wait;
+    public GlobalEnums.GameState CurrentState
+    {
+        get => _currentState;
+        private set
+        {
+            Assert.IsFalse(_currentState == value, "Assigning the same state is not allowed.");
+            
+            Debug.Log($"Current state set to: {value}");
+            _currentState = value;
+        }
+    } 
+    GlobalEnums.GameState _currentState = GlobalEnums.GameState.Wait;
 
     const int Score = 0;
     float _displayScore;
@@ -19,13 +32,6 @@ public class SC_GameLogic : MonoBehaviour
 
     [SerializeField]
     SC_Input _scInput;
-
-    // if anything is moving then we are in Wait state (waiting for movement to finish)
-    // otherwise Move state (player can perform a move)
-    readonly Action<int, int> _gemMovementFinishedCallback = (x, y) =>
-    {
-        Movement[x, y] = false;
-    };
 
     // which pieces are moving
     public static readonly bool[,] Movement = new bool[7, 7];
@@ -141,7 +147,14 @@ public class SC_GameLogic : MonoBehaviour
         gem.transform.SetParent(gemHolder.transform);
         gem.name = "Gem - " + position.x + ", " + position.y;
         _gameBoard.SetGem(position.x, position.y, gem);
-        gem.SetupGem(position, _gemMovementFinishedCallback);
+        gem.SetupGem(position, MovementFinished);
+    }
+    
+    // if anything is moving then we are in Wait state (waiting for movement to finish)
+    // otherwise Move state (player can perform a move)
+    void MovementFinished(int x, int y)
+    {
+        Movement[x, y] = false;
     }
 
     void DestroyMatches()

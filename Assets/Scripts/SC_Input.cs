@@ -49,7 +49,7 @@ public class SC_Input : MonoBehaviour
                 {
                     current = new Vector2Int(firstX, firstY);
                     other = new Vector2Int(finalX, finalY);
-                    Debug.Log($"INPUT V2 RETURN first: {firstX},{firstY}, final: {finalX},{finalY}");
+                    Debug.Log($"INPUT first: ({firstX},{firstY}) final: ({finalX},{finalY})");
                     return true;
                 }
         }
