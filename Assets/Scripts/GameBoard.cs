@@ -30,10 +30,10 @@ public class GameBoard
     readonly bool[,] _matches;
 #endregion
 
-    public GameBoard(int width, int height)
+    public GameBoard()
     {
-        Height = height;
-        Width = width;
+        Height = SC_GameVariables.Instance.rowsSize;
+        Width = SC_GameVariables.Instance.colsSize;
         _allGems = new SC_Gem[Width, Height];
         _matches = new bool[Width, Height];
     }
@@ -73,6 +73,8 @@ public class GameBoard
     public void SetGem(Vector2Int pos, SC_Gem gem) => _allGems[pos.x, pos.y] = gem;
 
     public SC_Gem GetGem(int x, int y) => _allGems[x, y];
+    
+    public SC_Gem GetGem(Vector2Int pos) => _allGems[pos.x, pos.y];
 
     public void SwapGems(Vector2Int pos1, Vector2Int pos2)
     {

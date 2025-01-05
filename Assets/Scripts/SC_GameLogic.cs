@@ -27,7 +27,7 @@ public class SC_GameLogic : MonoBehaviour
     public Transform gemHolder;
     
     // which pieces are moving
-    public static readonly bool[,] Movement = new bool[7, 7];
+    public static bool[,] Movement;
     
     const int Score = 0;
     float _displayScore;
@@ -46,6 +46,8 @@ public class SC_GameLogic : MonoBehaviour
     void Start()
     {
         score.text = Score.ToString("0");
+        
+        Movement = new bool[SC_GameVariables.Instance.rowsSize, SC_GameVariables.Instance.colsSize];
         
         _projectilePool = new ObjectPool<SC_Gem>(
             () => Instantiate(SC_GameVariables.Instance.gemPrefab, gemHolder.transform),
@@ -79,7 +81,7 @@ public class SC_GameLogic : MonoBehaviour
     void Update()
     {
         // todo: this should not be updated every frame, should on change 
-        _displayScore = Mathf.Lerp(_displayScore, SC_GameVariables.Instance.Score, SC_GameVariables.Instance.scoreSpeed * Time.deltaTime);
+        _displayScore = Mathf.Lerp(_displayScore, SC_GameVariables.Instance.score, SC_GameVariables.Instance.scoreSpeed * Time.deltaTime);
         score.text = _displayScore.ToString("0");
 
         // if in wait then check movement table 
@@ -124,7 +126,7 @@ public class SC_GameLogic : MonoBehaviour
 #region Logic
     void Init()
     {
-        _gameBoard = new GameBoard(7, 7);
+        _gameBoard = new GameBoard();
         Setup();
     }
 
@@ -137,15 +139,15 @@ public class SC_GameLogic : MonoBehaviour
                 bgTile.transform.SetParent(gemHolder);
                 bgTile.name = "BG Tile - " + x + ", " + y;
 
-                GlobalEnums.GemType randy = RandomPiece(x, y);
-                SpawnGem(x, y, randy);
+                GlobalEnums.GemType gem = GetRandomPiece(x, y);
+                SpawnGem(x, y, gem);
             }
     }
 
     /// <summary>
     /// Select a random piece type. It tries to avoid returning a type that would result in a match but there is no guarantee.
     /// </summary>
-    GlobalEnums.GemType RandomPiece(int x, int y)
+    GlobalEnums.GemType GetRandomPiece(int x, int y)
     {
         // first decide if a bomb
         if (Random.Range(0, 100f) < SC_GameVariables.Instance.bombChance)
@@ -184,7 +186,7 @@ public class SC_GameLogic : MonoBehaviour
     
     // if anything is moving then we are in Wait state (waiting for movement to finish)
     // otherwise Move state (player can perform a move)
-    static void MovementFinished(int x, int y) => Movement[x, y] = false;
+    void MovementFinished(int x, int y) => Movement[x, y] = false;
 
     void DestroyMatches()
     {
@@ -195,7 +197,7 @@ public class SC_GameLogic : MonoBehaviour
                     SC_Gem gem = _gameBoard.GetGem(x, y);
                     if (gem)
                     {
-                        SC_GameVariables.Instance.Score += SC_GameVariables.Instance.scoreValue;
+                        SC_GameVariables.Instance.score += SC_GameVariables.Instance.scoreValue;
                         DestroyMatchedGemsAt(gem.posIndex);
                     }
                 }
@@ -232,15 +234,13 @@ public class SC_GameLogic : MonoBehaviour
 
     void DestroyMatchedGemsAt(Vector2Int pos)
     {
-        SC_Gem curGem = _gameBoard.GetGem(pos.x, pos.y);
+        SC_Gem curGem = _gameBoard.GetGem(pos);
         if (!curGem)
             return;
 
         // todo: destroy effect could be pulled too
         Instantiate(curGem.destroyEffect, new Vector3(pos.x, pos.y), Quaternion.identity);
-
         _projectilePool.Release(curGem);
-        
         _gameBoard.SetGem(pos, null);
     }
 
@@ -273,8 +273,8 @@ public class SC_GameLogic : MonoBehaviour
                 if (curGem)
                     continue;
 
-                GlobalEnums.GemType randy = RandomPiece(x, y);
-                SpawnGem(x, y, randy);
+                GlobalEnums.GemType gem = GetRandomPiece(x, y);
+                SpawnGem(x, y, gem);
             }
     }
 #endregion
