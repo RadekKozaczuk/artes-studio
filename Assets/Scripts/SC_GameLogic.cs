@@ -108,13 +108,8 @@ public class SC_GameLogic : MonoBehaviour
     {
         _coroutineRunning = true;
         yield return new WaitForSeconds(.5f);
+
         _gameBoard.FindAllMatches();
-        
-        // log any four piece matches found
-        for (int x = 0; x < _gameBoard.Width; x++)
-            for (int y = 0; y < _gameBoard.Height; y++)
-                if (_gameBoard.GetMatch(x, y) == GlobalEnums.MatchType.FourPiece)
-                    Debug.Log($"Four Piece Match x:{x} y:{y}");
         
         if (_gameBoard.GetMatch(current) == GlobalEnums.MatchType.Nothing 
             && _gameBoard.GetMatch(other) == GlobalEnums.MatchType.Nothing)
@@ -130,7 +125,11 @@ public class SC_GameLogic : MonoBehaviour
             {
                 _gameBoard.SetType(other, GlobalEnums.GemType.Bomb);
                 _gameBoard.SetMatch(other, GlobalEnums.MatchType.Nothing);
-                Debug.Log($"Piece x:{other.x} y:{other.y} changed to Bomb/Nothing");
+            }
+            else if (_gameBoard.GetMatch(current) == GlobalEnums.MatchType.FourPiece)
+            {
+                _gameBoard.SetType(current, GlobalEnums.GemType.Bomb);
+                _gameBoard.SetMatch(current, GlobalEnums.MatchType.Nothing);
             }
             
             DestroyMatches();
@@ -255,6 +254,7 @@ public class SC_GameLogic : MonoBehaviour
 
         // todo: destroy effect could be pulled too
         Instantiate(curGem.destroyEffect, new Vector3(pos.x, pos.y), Quaternion.identity);
+
         _gemPool.Release(curGem);
         _gameBoard.SetGem(pos, null);
     }
