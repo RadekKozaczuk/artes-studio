@@ -64,34 +64,15 @@ public class GameBoard
         return false;
     }
     
-    public bool MatchesAt(Vector2Int positionToCheck, GlobalEnums.GemType gemType)
-    {
-        int x = positionToCheck.x;
-        int y = positionToCheck.y;
-        
-        if (x > 1)
-            if (_allGems[x - 1, y].type == gemType && _allGems[x - 2, y].type == gemType)
-                return true;
-
-        if (y > 1)
-            if (_allGems[x, y - 1].type == gemType && _allGems[x, y - 2].type == gemType)
-                return true;
-
-        return false;
-    }
-
-    // todo: consider renaming coordinates to pos
-    public bool GetMatch(Vector2Int coordinates) => _matches[coordinates.x, coordinates.y];
+    public bool GetMatch(Vector2Int pos) => _matches[pos.x, pos.y];
     
     public bool GetMatch(int x, int y) => _matches[x, y];
 
     public void SetGem(int x, int y, SC_Gem gem) => _allGems[x, y] = gem;
     
-    public void SetGem(Vector2Int coordinates, SC_Gem gem) => _allGems[coordinates.x, coordinates.y] = gem;
+    public void SetGem(Vector2Int pos, SC_Gem gem) => _allGems[pos.x, pos.y] = gem;
 
     public SC_Gem GetGem(int x, int y) => _allGems[x, y];
-
-    public SC_Gem GetGem(Vector2Int coordinates) => _allGems[coordinates.x, coordinates.y];
 
     public void SwapGems(Vector2Int pos1, Vector2Int pos2)
     {

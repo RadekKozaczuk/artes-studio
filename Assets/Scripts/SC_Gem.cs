@@ -16,6 +16,11 @@ public class SC_Gem : MonoBehaviour
             Assert.IsFalse(_posIndex == value, "Assigning the same position is not allowed");
             
             _posIndex = value;
+
+            // when gems are reused (pooling) posIndex is assigned with (int.MinValue, int.MinValue)
+            if (posIndex.x == int.MinValue)
+                return;
+            
             SC_GameLogic.Movement[_posIndex.x, _posIndex.y] = true;
         }
     }
@@ -23,6 +28,7 @@ public class SC_Gem : MonoBehaviour
 
     public GlobalEnums.GemType type;
     public GameObject destroyEffect;
+    public SpriteRenderer spriteRenderer;
 
     Action<int, int> _movementFinishedCallback;
 
@@ -43,15 +49,11 @@ public class SC_Gem : MonoBehaviour
         }
     }
     
-    public void SetupGem(int x, int y, Action<int, int> movementFinishedCallback)
+    public void SetupGem(int x, int y, GlobalEnums.GemType gemType, Action<int, int> movementFinishedCallback)
     {
         posIndex = new Vector2Int(x, y);
-        _movementFinishedCallback = movementFinishedCallback;
-    }
-
-    public void SetupGem(Vector2Int position, Action<int, int> movementFinishedCallback)
-    {
-        posIndex = position;
+        type = gemType;
+        spriteRenderer.sprite = SC_GameVariables.Instance.gemSprites[(int)type];
         _movementFinishedCallback = movementFinishedCallback;
     }
 }

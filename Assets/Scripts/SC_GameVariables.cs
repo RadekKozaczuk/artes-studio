@@ -3,8 +3,10 @@
 public class SC_GameVariables : MonoBehaviour
 {
     public GameObject bgTilePrefabs;
-    public SC_Gem bomb;
-    public SC_Gem[] gems;
+    public SC_Gem gemPrefab;
+
+    public Sprite[] gemSprites;
+    
     public float bonusAmount = 0.5f;
     public float bombChance = 2f;
     public int dropHeight = 0;

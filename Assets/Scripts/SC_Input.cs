@@ -41,7 +41,7 @@ public class SC_Input : MonoBehaviour
             int distanceY = Math.Abs(finalY - firstY);
 
             if (distanceX == 1 && distanceY == 0 || distanceX == 0 && distanceY == 1)
-                if (Vector3.Distance(_firstTouchPosition, _finalTouchPosition) > .5f)
+                if (Vector2.Distance(_firstTouchPosition, _finalTouchPosition) > .5f)
                 {
                     current = new Vector2Int(firstX, firstY);
                     other = new Vector2Int(finalX, finalY);

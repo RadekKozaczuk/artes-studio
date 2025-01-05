@@ -9,10 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7667143225876670887}
-  - component: {fileID: 7667143225876670884}
   - component: {fileID: -7932498854989450506}
+  - component: {fileID: 7667143225876670884}
   m_Layer: 0
-  m_Name: Gem - Blue
+  m_Name: Gem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -33,6 +33,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-7932498854989450506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7667143225876670874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5d1e13e319aa044e9776fbd351e9d03, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  destroyEffect: {fileID: 8904178830182364799, guid: d794be08823edd34da1790efd1739074,
+    type: 3}
+  spriteRenderer: {fileID: 7667143225876670884}
 --- !u!212 &7667143225876670884
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -85,22 +101,3 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &-7932498854989450506
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7667143225876670874}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5d1e13e319aa044e9776fbd351e9d03, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  posIndex: {x: 0, y: 0}
-  type: 0
-  isMatch: 0
-  destroyEffect: {fileID: 8904178830182364799, guid: d794be08823edd34da1790efd1739074,
-    type: 3}
-  scoreValue: 10
-  blastSize: 1

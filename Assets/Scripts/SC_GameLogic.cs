@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Pool;
 using Random = UnityEngine.Random;
 using Vector2Int = UnityEngine.Vector2Int;
 
@@ -32,10 +34,24 @@ public class SC_GameLogic : MonoBehaviour
     // which pieces are moving
     public static readonly bool[,] Movement = new bool[7, 7];
     
+    ObjectPool<SC_Gem> _projectilePool;
+    
+    public int gemTypeLength = Enum.GetNames(typeof(GlobalEnums.GemType)).Length;
+    
 #region MonoBehaviour
     void Start()
     {
         score.text = Score.ToString("0");
+        
+        _projectilePool = new ObjectPool<SC_Gem>(
+            () => Instantiate(SC_GameVariables.Instance.gemPrefab, gemHolder.transform),
+            gem => gem.gameObject.SetActive(true),
+            gem =>
+            {
+                gem.posIndex = new Vector2Int(int.MinValue, int.MinValue);
+                gem.gameObject.SetActive(false);
+            });
+        
         Init();
     }
 
@@ -112,28 +128,34 @@ public class SC_GameLogic : MonoBehaviour
                 bgTile.transform.SetParent(gemHolder);
                 bgTile.name = "BG Tile - " + x + ", " + y;
 
-                int gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
+                int gemToUse = Random.Range(0, gemTypeLength - 1); // -1 to exclude bomb
+                var typeToUse = (GlobalEnums.GemType)gemToUse;
 
+                // todo: random gem pull should be a dedicated method
+                
                 int iterations = 0;
-                while (_gameBoard.MatchesAt(x, y, SC_GameVariables.Instance.gems[gemToUse].type) && iterations < 100)
+                while (_gameBoard.MatchesAt(x, y, typeToUse) && iterations < 100) // todo: this loop could be simplified to reduce the number of random calls
                 {
-                    gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
+                    gemToUse = Random.Range(0, gemTypeLength - 1); // -1 to exclude bomb
+                    typeToUse = (GlobalEnums.GemType)gemToUse;
                     iterations++;
                 }
-                SpawnGem(x, y, SC_GameVariables.Instance.gems[gemToUse]);
+                
+                if (Random.Range(0, 100f) < SC_GameVariables.Instance.bombChance)
+                    typeToUse = GlobalEnums.GemType.Bomb;
+                
+                SpawnGem(x, y, typeToUse);
             }
     }
     
-    void SpawnGem(int x, int y, SC_Gem gemToSpawn)
+    void SpawnGem(int x, int y, GlobalEnums.GemType type)
     {
-        if (Random.Range(0, 100f) < SC_GameVariables.Instance.bombChance)
-            gemToSpawn = SC_GameVariables.Instance.bomb;
+        SC_Gem gem = _projectilePool.Get();
 
-        SC_Gem gem = Instantiate(gemToSpawn, new Vector3(x, y + SC_GameVariables.Instance.dropHeight, 0f), Quaternion.identity);
-        gem.transform.SetParent(gemHolder.transform);
+        gem.transform.position = new Vector3(x, y + SC_GameVariables.Instance.dropHeight, 0f);
         gem.name = "Gem - " + x + ", " + y;
         _gameBoard.SetGem(x, y, gem);
-        gem.SetupGem(x, y, MovementFinished);
+        gem.SetupGem(x, y, type, MovementFinished);
     }
     
     // if anything is moving then we are in Wait state (waiting for movement to finish)
@@ -167,7 +189,7 @@ public class SC_GameLogic : MonoBehaviour
             for (int y = 0; y < _gameBoard.Height; y++)
             {
                 SC_Gem curGem = _gameBoard.GetGem(x, y);
-                if (curGem == null)
+                if (!curGem)
                 {
                     nullCounter++;
                 }
@@ -190,9 +212,11 @@ public class SC_GameLogic : MonoBehaviour
         if (!curGem)
             return;
 
+        // todo: destroy effect could be pulled too
         Instantiate(curGem.destroyEffect, new Vector3(pos.x, pos.y), Quaternion.identity);
 
-        Destroy(curGem.gameObject);
+        _projectilePool.Release(curGem);
+        
         _gameBoard.SetGem(pos, null);
     }
 
@@ -202,6 +226,7 @@ public class SC_GameLogic : MonoBehaviour
         RefillBoard();
         yield return new WaitForSeconds(0.5f);
         _gameBoard.FindAllMatches();
+
         if (_gameBoard.MatchCount > 0)
         {
             yield return new WaitForSeconds(0.5f);
@@ -224,8 +249,12 @@ public class SC_GameLogic : MonoBehaviour
                 if (curGem)
                     continue;
 
-                int gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
-                SpawnGem(x, y, SC_GameVariables.Instance.gems[gemToUse]);
+                var gemToUse = (GlobalEnums.GemType)Random.Range(0, gemTypeLength - 1);
+                
+                if (Random.Range(0, 100f) < SC_GameVariables.Instance.bombChance)
+                    gemToUse = GlobalEnums.GemType.Bomb;
+                
+                SpawnGem(x, y, gemToUse);
             }
     }
 #endregion
