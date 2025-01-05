@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class GameBoard
 {
@@ -182,6 +183,9 @@ public class GameBoard
             }
     }
     
+    /// <summary>
+    /// Set corresponding <see cref="_matches"/> value to true if within the bomb range.
+    /// </summary>
     void MarkBombArea(int posX, int posY)
     {
         int blastSize = SC_GameVariables.Instance.blastSize;
@@ -189,10 +193,16 @@ public class GameBoard
         for (int x = posX - blastSize; x <= posX + blastSize; x++)
             for (int y = posY - blastSize; y <= posY + blastSize; y++)
             {
+                // skip if outside of map
                 if (x < 0 || x >= Width || y < 0 || y >= Height)
                     continue;
 
+                // skip if empty
                 if (!_allGems[x, y])
+                    continue;
+
+                // skip if distance is greater than blastSize
+                if (Math.Abs(posX - x) + Math.Abs(posY - y) > blastSize)
                     continue;
 
                 _matches[x, y] = true;

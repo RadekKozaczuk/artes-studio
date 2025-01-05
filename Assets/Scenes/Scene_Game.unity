@@ -966,11 +966,13 @@ MonoBehaviour:
   dropHeight: 1
   gemSpeed: 7
   scoreSpeed: 5
-  Score: 0
+  score: 0
+  bombNeighbourDestructionDelay: 0
+  bombSelfDestructionDelay: 0
   rowsSize: 7
   colsSize: 7
   scoreValue: 10
-  blastSize: 1
+  blastSize: 2
 --- !u!1 &1450061018
 GameObject:
   m_ObjectHideFlags: 0
