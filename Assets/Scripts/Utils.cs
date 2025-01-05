@@ -22,9 +22,6 @@ public static class Utils
     /// <summary>
     /// Z coefficient of a will be ignored.
     /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static float FastDistance2D(Vector3 a, Vector2Int b)
     {

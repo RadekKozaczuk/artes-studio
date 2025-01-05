@@ -272,7 +272,6 @@ MonoBehaviour:
   score: {fileID: 786657519}
   gemHolder: {fileID: 1740955909}
   _scInput: {fileID: 1183579474}
-  gemTypeLength: 6
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0

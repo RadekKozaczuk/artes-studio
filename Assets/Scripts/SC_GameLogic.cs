@@ -9,6 +9,7 @@ using Vector2Int = UnityEngine.Vector2Int;
 
 public class SC_GameLogic : MonoBehaviour
 {
+#region Properties
     public GlobalEnums.GameState CurrentState
     {
         get => _currentState;
@@ -19,24 +20,27 @@ public class SC_GameLogic : MonoBehaviour
         }
     } 
     GlobalEnums.GameState _currentState = GlobalEnums.GameState.Wait;
+#endregion
 
-    const int Score = 0;
-    float _displayScore;
-
+#region Variables
     public TextMeshProUGUI score;
     public Transform gemHolder;
     
+    // which pieces are moving
+    public static readonly bool[,] Movement = new bool[7, 7];
+    
+    const int Score = 0;
+    float _displayScore;
     GameBoard _gameBoard;
+    ObjectPool<SC_Gem> _projectilePool;
+    bool _coroutineRunning;
 
     [SerializeField]
     SC_Input _scInput;
 
-    // which pieces are moving
-    public static readonly bool[,] Movement = new bool[7, 7];
-    
-    ObjectPool<SC_Gem> _projectilePool;
-    
-    public int gemTypeLength = Enum.GetNames(typeof(GlobalEnums.GemType)).Length;
+    // we start in the random spot and then proceed forward in case of a match
+    GlobalEnums.GemType[] _gemTypes;
+#endregion
     
 #region MonoBehaviour
     void Start()
@@ -51,6 +55,12 @@ public class SC_GameLogic : MonoBehaviour
                 gem.posIndex = new Vector2Int(int.MinValue, int.MinValue);
                 gem.gameObject.SetActive(false);
             });
+
+        Array types = Enum.GetValues(typeof(GlobalEnums.GemType));
+        _gemTypes = new GlobalEnums.GemType[types.Length - 1];
+
+        for (int i = 0; i < types.Length - 1; i++)
+            _gemTypes[i] = (GlobalEnums.GemType)types.GetValue(i);
         
         Init();
     }
@@ -91,7 +101,6 @@ public class SC_GameLogic : MonoBehaviour
         }
     }
 
-    static bool _coroutineRunning;
     
     IEnumerator CheckMoveCo(Vector2Int current, Vector2Int other)
     {
@@ -128,24 +137,39 @@ public class SC_GameLogic : MonoBehaviour
                 bgTile.transform.SetParent(gemHolder);
                 bgTile.name = "BG Tile - " + x + ", " + y;
 
-                int gemToUse = Random.Range(0, gemTypeLength - 1); // -1 to exclude bomb
-                var typeToUse = (GlobalEnums.GemType)gemToUse;
-
-                // todo: random gem pull should be a dedicated method
-                
-                int iterations = 0;
-                while (_gameBoard.MatchesAt(x, y, typeToUse) && iterations < 100) // todo: this loop could be simplified to reduce the number of random calls
-                {
-                    gemToUse = Random.Range(0, gemTypeLength - 1); // -1 to exclude bomb
-                    typeToUse = (GlobalEnums.GemType)gemToUse;
-                    iterations++;
-                }
-                
-                if (Random.Range(0, 100f) < SC_GameVariables.Instance.bombChance)
-                    typeToUse = GlobalEnums.GemType.Bomb;
-                
-                SpawnGem(x, y, typeToUse);
+                GlobalEnums.GemType randy = RandomPiece(x, y);
+                SpawnGem(x, y, randy);
             }
+    }
+
+    /// <summary>
+    /// Select a random piece type. It tries to avoid returning a type that would result in a match but there is no guarantee.
+    /// </summary>
+    GlobalEnums.GemType RandomPiece(int x, int y)
+    {
+        // first decide if a bomb
+        if (Random.Range(0, 100f) < SC_GameVariables.Instance.bombChance)
+            return GlobalEnums.GemType.Bomb;
+        
+        // if not go for a normal piece
+        // pick random
+        int length = _gemTypes.Length;
+        int rand = Random.Range(0, length);
+
+        for (int i = 0; i < length; i++)
+        {
+            int index = rand + i;
+
+            if (index >= length)
+                index -= length;
+            
+            // return if it does not match
+            if (!_gameBoard.MatchesAt(x, y, _gemTypes[index]))
+                return _gemTypes[index];
+        }
+        
+        // if it couldn't find anything return first
+        return _gemTypes[rand];
     }
     
     void SpawnGem(int x, int y, GlobalEnums.GemType type)
@@ -249,12 +273,8 @@ public class SC_GameLogic : MonoBehaviour
                 if (curGem)
                     continue;
 
-                var gemToUse = (GlobalEnums.GemType)Random.Range(0, gemTypeLength - 1);
-                
-                if (Random.Range(0, 100f) < SC_GameVariables.Instance.bombChance)
-                    gemToUse = GlobalEnums.GemType.Bomb;
-                
-                SpawnGem(x, y, gemToUse);
+                GlobalEnums.GemType randy = RandomPiece(x, y);
+                SpawnGem(x, y, randy);
             }
     }
 #endregion
