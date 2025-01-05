@@ -13,7 +13,7 @@ public class GameBoard
             for (int x = 0; x < Width; x++)
                 for (int y = 0; y < Height; y++)
                 {
-                    if (_matches[x, y])
+                    if (_matches[x, y] != GlobalEnums.MatchType.Nothing)
                         count++;
                 }
 
@@ -28,7 +28,7 @@ public class GameBoard
     public int Width { get; }
 
     readonly SC_Gem[,] _allGems;
-    readonly bool[,] _matches;
+    readonly GlobalEnums.MatchType[,] _matches;
 #endregion
 
     public GameBoard()
@@ -36,7 +36,7 @@ public class GameBoard
         Height = SC_GameVariables.Instance.rowsSize;
         Width = SC_GameVariables.Instance.colsSize;
         _allGems = new SC_Gem[Width, Height];
-        _matches = new bool[Width, Height];
+        _matches = new GlobalEnums.MatchType[Width, Height];
     }
 
 #region Methods
@@ -65,13 +65,22 @@ public class GameBoard
         return false;
     }
     
-    public bool GetMatch(Vector2Int pos) => _matches[pos.x, pos.y];
+    public GlobalEnums.MatchType GetMatch(Vector2Int pos) => _matches[pos.x, pos.y];
     
-    public bool GetMatch(int x, int y) => _matches[x, y];
+    public GlobalEnums.MatchType GetMatch(int x, int y) => _matches[x, y];
+    
+    public void SetMatch(Vector2Int pos, GlobalEnums.MatchType type) => _matches[pos.x, pos.y] = type;
 
     public void SetGem(int x, int y, SC_Gem gem) => _allGems[x, y] = gem;
     
     public void SetGem(Vector2Int pos, SC_Gem gem) => _allGems[pos.x, pos.y] = gem;
+    
+    public void SetType(Vector2Int pos, GlobalEnums.GemType type)
+    {
+        SC_Gem gem = _allGems[pos.x, pos.y];
+        gem.type = type;
+        gem.spriteRenderer.sprite = SC_GameVariables.Instance.gemSprites[(int)type];
+    }
 
     public SC_Gem GetGem(int x, int y) => _allGems[x, y];
     
@@ -90,11 +99,15 @@ public class GameBoard
         _allGems[pos2.x, pos2.y] = currentGem;
     }
     
+    /// <summary>
+    /// Marks matched elements as either <see cref="GlobalEnums.MatchType.ThreePiece"/>
+    /// or <see cref="GlobalEnums.MatchType.FourPiece"/>.
+    /// </summary>
     public void FindAllMatches()
     {
         for (int x = 0; x < Width; x++)
             for (int y = 0; y < Height; y++)
-                _matches[x, y] = false;
+                _matches[x, y] = GlobalEnums.MatchType.Nothing;
         
         for (int x = 0; x < Width; x++)
             for (int y = 0; y < Height; y++)
@@ -114,9 +127,9 @@ public class GameBoard
                         //Match
                         if (leftGem.type == currentGem.type && rightGem.type == currentGem.type)
                         {
-                            _matches[x, y] = true;
-                            _matches[x - 1, y] = true;
-                            _matches[x + 1, y] = true;
+                            _matches[x, y] = GlobalEnums.MatchType.ThreePiece;
+                            _matches[x - 1, y] = GlobalEnums.MatchType.ThreePiece;
+                            _matches[x + 1, y] = GlobalEnums.MatchType.ThreePiece;
                         }
                     }
                 }
@@ -134,15 +147,62 @@ public class GameBoard
                 //Match
                 if (aboveGem.type == currentGem.type && belowGem.type == currentGem.type)
                 {
-                    _matches[x, y] = true;
-                    _matches[x, y - 1] = true;
-                    _matches[x, y + 1] = true;
+                    _matches[x, y] = GlobalEnums.MatchType.ThreePiece;
+                    _matches[x, y - 1] = GlobalEnums.MatchType.ThreePiece;
+                    _matches[x, y + 1] = GlobalEnums.MatchType.ThreePiece;
+                }
+            }
+
+        // go vertically
+        for (int x = 0; x < Width; x++)
+            for (int y = 3; y < Height; y++)
+            {
+                GlobalEnums.MatchType threeAbove = _matches[x, y - 3];
+                GlobalEnums.MatchType twoAbove = _matches[x, y - 2];
+                GlobalEnums.MatchType oneAbove = _matches[x, y - 1];
+                GlobalEnums.MatchType current = _matches[x, y];
+                
+                if (current == GlobalEnums.MatchType.ThreePiece 
+                    && oneAbove == GlobalEnums.MatchType.ThreePiece
+                    && twoAbove == GlobalEnums.MatchType.ThreePiece
+                    && threeAbove == GlobalEnums.MatchType.ThreePiece)
+                {
+                    _matches[x, y] = GlobalEnums.MatchType.FourPiece;
+                    _matches[x, y - 1] = GlobalEnums.MatchType.FourPiece;
+                    _matches[x, y - 2] = GlobalEnums.MatchType.FourPiece;
+                    _matches[x, y - 3] = GlobalEnums.MatchType.FourPiece;
+                }
+            }
+
+        // go horizontally
+        for (int y = 0; y < Height; y++)
+            for (int x = 3; x < Width; x++)
+            {
+                GlobalEnums.MatchType threeLeft = _matches[x - 3, y];
+                GlobalEnums.MatchType twoLeft = _matches[x - 2, y];
+                GlobalEnums.MatchType oneLeft = _matches[x - 1, y];
+                GlobalEnums.MatchType current = _matches[x, y];
+                
+                if (current == GlobalEnums.MatchType.ThreePiece 
+                    && oneLeft == GlobalEnums.MatchType.ThreePiece
+                    && twoLeft == GlobalEnums.MatchType.ThreePiece
+                    && threeLeft == GlobalEnums.MatchType.ThreePiece)
+                {
+                    _matches[x, y] = GlobalEnums.MatchType.FourPiece;
+                    _matches[x - 1, y] = GlobalEnums.MatchType.FourPiece;
+                    _matches[x - 2, y] = GlobalEnums.MatchType.FourPiece;
+                    _matches[x - 3, y] = GlobalEnums.MatchType.FourPiece;
                 }
             }
 
         CheckForBombs();
     }
     
+    /// <summary>
+    /// Only <see cref="GlobalEnums.MatchType.Nothing"/> can be marked as <see cref="GlobalEnums.MatchType.Bomb"/>.<br/>
+    /// Piece marked as <see cref="GlobalEnums.MatchType.ThreePiece"/>
+    /// or <see cref="GlobalEnums.MatchType.FourPiece"/> are ignored.
+    /// </summary>
     void CheckForBombs()
     {
         // ReSharper disable once ForCanBeConvertedToForeach
@@ -184,7 +244,7 @@ public class GameBoard
     }
     
     /// <summary>
-    /// Set corresponding <see cref="_matches"/> value to true if within the bomb range.
+    /// Set corresponding <see cref="_matches"/> value to <see cref="GlobalEnums.MatchType.Bomb"/> if within the bomb range.
     /// </summary>
     void MarkBombArea(int posX, int posY)
     {
@@ -205,7 +265,9 @@ public class GameBoard
                 if (Math.Abs(posX - x) + Math.Abs(posY - y) > blastSize)
                     continue;
 
-                _matches[x, y] = true;
+                // skip already matched
+                if (_matches[x, y] == GlobalEnums.MatchType.Nothing)
+                    _matches[x, y] = GlobalEnums.MatchType.Bomb;
             }
     }
 #endregion

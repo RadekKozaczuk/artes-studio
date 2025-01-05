@@ -19,4 +19,12 @@ public class GlobalEnums : MonoBehaviour
         /// </summary>
         Move
     }
+
+    public enum MatchType
+    {
+        Nothing,
+        ThreePiece,
+        FourPiece,
+        Bomb
+    }
 }

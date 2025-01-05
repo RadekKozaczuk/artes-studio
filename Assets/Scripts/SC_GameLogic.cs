@@ -32,7 +32,7 @@ public class SC_GameLogic : MonoBehaviour
     const int Score = 0;
     float _displayScore;
     GameBoard _gameBoard;
-    ObjectPool<SC_Gem> _projectilePool;
+    ObjectPool<SC_Gem> _gemPool;
     bool _coroutineRunning;
 
     [SerializeField]
@@ -49,7 +49,7 @@ public class SC_GameLogic : MonoBehaviour
         
         Movement = new bool[SC_GameVariables.Instance.rowsSize, SC_GameVariables.Instance.colsSize];
         
-        _projectilePool = new ObjectPool<SC_Gem>(
+        _gemPool = new ObjectPool<SC_Gem>(
             () => Instantiate(SC_GameVariables.Instance.gemPrefab, gemHolder.transform),
             gem => gem.gameObject.SetActive(true),
             gem =>
@@ -110,7 +110,14 @@ public class SC_GameLogic : MonoBehaviour
         yield return new WaitForSeconds(.5f);
         _gameBoard.FindAllMatches();
         
-        if (!_gameBoard.GetMatch(current) && !_gameBoard.GetMatch(other))
+        // log any four piece matches found
+        for (int x = 0; x < _gameBoard.Width; x++)
+            for (int y = 0; y < _gameBoard.Height; y++)
+                if (_gameBoard.GetMatch(x, y) == GlobalEnums.MatchType.FourPiece)
+                    Debug.Log($"Four Piece Match x:{x} y:{y}");
+        
+        if (_gameBoard.GetMatch(current) == GlobalEnums.MatchType.Nothing 
+            && _gameBoard.GetMatch(other) == GlobalEnums.MatchType.Nothing)
         {
             _gameBoard.SwapGems(current, other);
             yield return new WaitForSeconds(.5f);
@@ -118,6 +125,14 @@ public class SC_GameLogic : MonoBehaviour
         }
         else
         {
+            // Put a bomb in place of a four match
+            if (_gameBoard.GetMatch(other) == GlobalEnums.MatchType.FourPiece)
+            {
+                _gameBoard.SetType(other, GlobalEnums.GemType.Bomb);
+                _gameBoard.SetMatch(other, GlobalEnums.MatchType.Nothing);
+                Debug.Log($"Piece x:{other.x} y:{other.y} changed to Bomb/Nothing");
+            }
+            
             DestroyMatches();
         }
     }
@@ -176,7 +191,7 @@ public class SC_GameLogic : MonoBehaviour
     
     void SpawnGem(int x, int y, GlobalEnums.GemType type)
     {
-        SC_Gem gem = _projectilePool.Get();
+        SC_Gem gem = _gemPool.Get();
 
         gem.transform.position = new Vector3(x, y + SC_GameVariables.Instance.dropHeight, 0f);
         gem.name = "Gem - " + x + ", " + y;
@@ -186,13 +201,13 @@ public class SC_GameLogic : MonoBehaviour
     
     // if anything is moving then we are in Wait state (waiting for movement to finish)
     // otherwise Move state (player can perform a move)
-    void MovementFinished(int x, int y) => Movement[x, y] = false;
-
+    static void MovementFinished(int x, int y) => Movement[x, y] = false;
+    
     void DestroyMatches()
     {
         for (int x = 0; x < _gameBoard.Width; x++)
             for (int y = 0; y < _gameBoard.Height; y++)
-                if (_gameBoard.GetMatch(x, y))
+                if (_gameBoard.GetMatch(x, y) != GlobalEnums.MatchType.Nothing)
                 {
                     SC_Gem gem = _gameBoard.GetGem(x, y);
                     if (gem)
@@ -240,7 +255,7 @@ public class SC_GameLogic : MonoBehaviour
 
         // todo: destroy effect could be pulled too
         Instantiate(curGem.destroyEffect, new Vector3(pos.x, pos.y), Quaternion.identity);
-        _projectilePool.Release(curGem);
+        _gemPool.Release(curGem);
         _gameBoard.SetGem(pos, null);
     }
 
