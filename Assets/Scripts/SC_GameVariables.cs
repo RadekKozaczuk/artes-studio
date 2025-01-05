@@ -1,7 +1,20 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class SC_GameVariables : MonoBehaviour
 {
+    public int score
+    {
+        get => _score;
+        set
+        {
+            _score = value;
+            ScoreChanged?.Invoke(_score);
+        }
+    }
+    int _score;
+    
+    public Action<int> ScoreChanged;
     public GameObject bgTilePrefabs;
     public SC_Gem gemPrefab;
 
@@ -12,7 +25,6 @@ public class SC_GameVariables : MonoBehaviour
     public int dropHeight = 0;
     public float gemSpeed;
     public float scoreSpeed = 5;
-    public int score;
 
     public float bombNeighbourDestructionDelay;
     public float bombSelfDestructionDelay;

@@ -154,6 +154,7 @@ Transform:
   - {fileID: 376092240}
   - {fileID: 1445334646}
   - {fileID: 1183579473}
+  - {fileID: 1941282091}
   - {fileID: 259844899}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -269,7 +270,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db185b18195d3814aab9ba4ac5f95047, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  score: {fileID: 786657519}
   gemHolder: {fileID: 1740955909}
   _scInput: {fileID: 1183579474}
 --- !u!1 &519420028
@@ -966,7 +966,6 @@ MonoBehaviour:
   dropHeight: 1
   gemSpeed: 7
   scoreSpeed: 5
-  score: 0
   bombNeighbourDestructionDelay: 0
   bombSelfDestructionDelay: 0
   rowsSize: 7
@@ -1140,6 +1139,52 @@ Transform:
   - {fileID: 1136728301}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1941282090
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1941282091}
+  - component: {fileID: 1941282092}
+  m_Layer: 0
+  m_Name: SC_UI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1941282091
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941282090}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3199143}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1941282092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1941282090}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70408462eff24796b6688fe6ae13734d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _score: {fileID: 786657519}
+  _variables: {fileID: 1445334647}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

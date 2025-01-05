@@ -209,7 +209,7 @@ public class GameBoard
         for (int x = 0; x < Width; x++)
             for (int y = 0; y < Height; y++)
             {
-                if (x > 0) // todo: probably just x > 0
+                if (x > 0)
                 {
                     SC_Gem otherGem = _allGems[x - 1, y];
                     

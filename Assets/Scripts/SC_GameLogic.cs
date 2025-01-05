@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
@@ -23,13 +22,11 @@ public class SC_GameLogic : MonoBehaviour
 #endregion
 
 #region Variables
-    public TextMeshProUGUI score;
     public Transform gemHolder;
     
     // which pieces are moving
     public static bool[,] Movement;
     
-    const int Score = 0;
     float _displayScore;
     GameBoard _gameBoard;
     ObjectPool<SC_Gem> _gemPool;
@@ -45,8 +42,6 @@ public class SC_GameLogic : MonoBehaviour
 #region MonoBehaviour
     void Start()
     {
-        score.text = Score.ToString("0");
-        
         Movement = new bool[SC_GameVariables.Instance.rowsSize, SC_GameVariables.Instance.colsSize];
         
         _gemPool = new ObjectPool<SC_Gem>(
@@ -80,10 +75,6 @@ public class SC_GameLogic : MonoBehaviour
 
     void Update()
     {
-        // todo: this should not be updated every frame, should on change 
-        _displayScore = Mathf.Lerp(_displayScore, SC_GameVariables.Instance.score, SC_GameVariables.Instance.scoreSpeed * Time.deltaTime);
-        score.text = _displayScore.ToString("0");
-
         // if in wait then check movement table 
         if (CurrentState == GlobalEnums.GameState.Wait)
         {
