@@ -19,6 +19,7 @@ public class SC_GameVariables : MonoBehaviour
     public SC_Gem gemPrefab;
 
     public Sprite[] gemSprites;
+    public ParticleSystem[] effects;
     
     public float bonusAmount = 0.5f;
     public float bombChance = 2f;

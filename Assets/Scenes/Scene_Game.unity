@@ -961,13 +961,20 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 6bb7c00a68de1634cbee8574d8499804, type: 3}
   - {fileID: 21300000, guid: fa67839330996764683a123cb35a1ea8, type: 3}
   - {fileID: 21300000, guid: d1c82e015b38d4448bc1ba5e3eff90fa, type: 3}
+  effects:
+  - {fileID: 9206746479762182125, guid: d794be08823edd34da1790efd1739074, type: 3}
+  - {fileID: 4459931270687277055, guid: e5bba4196a7d43441bf62bd125171449, type: 3}
+  - {fileID: 6177825613914581992, guid: 072620c89288cc14e9872d103c2b2fbe, type: 3}
+  - {fileID: 5164992336748094917, guid: 7fcedfb0407bb5d438de37da2d61df30, type: 3}
+  - {fileID: 2139661992121877014, guid: 986dd822e2e6d4b45b2a054259f1241b, type: 3}
+  - {fileID: 8656875643190799694, guid: 05c754e3d4f9fd349ac1def58d17670f, type: 3}
   bonusAmount: 0.5
   bombChance: 3
   dropHeight: 1
   gemSpeed: 7
   scoreSpeed: 5
   bombNeighbourDestructionDelay: 0
-  bombSelfDestructionDelay: 0
+  bombSelfDestructionDelay: 1
   rowsSize: 7
   colsSize: 7
   scoreValue: 10

@@ -94,7 +94,6 @@ public class SC_GameLogic : MonoBehaviour
         }
     }
 
-    
     IEnumerator CheckMoveCo(Vector2Int current, Vector2Int other)
     {
         _coroutineRunning = true;
@@ -236,7 +235,7 @@ public class SC_GameLogic : MonoBehaviour
 
         StartCoroutine(FilledBoardCo());
     }
-
+    
     void DestroyMatchedGemsAt(Vector2Int pos)
     {
         SC_Gem curGem = _gameBoard.GetGem(pos);
@@ -244,7 +243,7 @@ public class SC_GameLogic : MonoBehaviour
             return;
 
         // todo: destroy effect could be pulled too
-        Instantiate(curGem.destroyEffect, new Vector3(pos.x, pos.y), Quaternion.identity);
+        Instantiate(SC_GameVariables.Instance.effects[(int)curGem.type], new Vector3(pos.x, pos.y), Quaternion.identity);
 
         _gemPool.Release(curGem);
         _gameBoard.SetGem(pos, null);

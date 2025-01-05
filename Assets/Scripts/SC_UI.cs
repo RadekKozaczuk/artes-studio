@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 
 public class SC_UI : MonoBehaviour

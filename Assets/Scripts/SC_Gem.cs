@@ -27,7 +27,6 @@ public class SC_Gem : MonoBehaviour
     Vector2Int _posIndex = new (int.MinValue, int.MinValue);
 
     public GlobalEnums.GemType type;
-    public GameObject destroyEffect;
     public SpriteRenderer spriteRenderer;
 
     Action<int, int> _movementFinishedCallback;

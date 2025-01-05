@@ -22,9 +22,29 @@ public class GlobalEnums : MonoBehaviour
 
     public enum MatchType
     {
+        /// <summary>
+        /// The piece did not match this frame.
+        /// </summary>
         Nothing,
+        
+        /// <summary>
+        /// The piece matched this frame, and it is a 3-element match. 
+        /// </summary>
         ThreePiece,
+        
+        /// <summary>
+        /// The piece matched this frame, and it is a 4-element match. 
+        /// </summary>
         FourPiece,
-        Bomb
+        
+        /// <summary>
+        /// The piece was destroyed by a bomb. 
+        /// </summary>
+        Bomb,
+        
+        /// <summary>
+        /// The piece self-destroyed. 
+        /// </summary>
+        BombItself
     }
 }
