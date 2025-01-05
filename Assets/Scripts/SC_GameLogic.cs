@@ -69,43 +69,25 @@ public class SC_GameLogic : MonoBehaviour
         {
             if (_scInput.TryGetInput(out Vector2Int current, out Vector2Int other))
             {
-                // change state
                 CurrentState = GlobalEnums.GameState.Wait;
-
-                SC_Gem currentGem = _gameBoard.GetGem(current);
-                SC_Gem otherGem = _gameBoard.GetGem(other);
-
-                // set positions
-                (currentGem.posIndex, otherGem.posIndex) = (otherGem.posIndex, currentGem.posIndex);
-                
-                // set (swap) references
-                _gameBoard.SetGem(current.x, current.y, otherGem);
-                _gameBoard.SetGem(other.x, other.y, currentGem);
-
-                StartCoroutine(CheckMoveCo(currentGem, otherGem));
+                _gameBoard.SwapGems(current, other);
+                StartCoroutine(CheckMoveCo(current, other));
             }
         }
     }
 
     static bool _coroutineRunning;
     
-    IEnumerator CheckMoveCo(SC_Gem current, SC_Gem other)
+    IEnumerator CheckMoveCo(Vector2Int current, Vector2Int other)
     {
         _coroutineRunning = true;
-        
         yield return new WaitForSeconds(.5f);
-
         _gameBoard.FindAllMatches();
         
-        if (!_gameBoard.GetMatch(current.posIndex) && !_gameBoard.GetMatch(other.posIndex))
+        if (!_gameBoard.GetMatch(current) && !_gameBoard.GetMatch(other))
         {
-            (other.posIndex, current.posIndex) = (current.posIndex, other.posIndex);
-
-            _gameBoard.SetGem(current.posIndex.x, current.posIndex.y, current);
-            _gameBoard.SetGem(other.posIndex.x, other.posIndex.y, other);
-
+            _gameBoard.SwapGems(current, other);
             yield return new WaitForSeconds(.5f);
-
             _coroutineRunning = false;
         }
         else
@@ -127,21 +109,32 @@ public class SC_GameLogic : MonoBehaviour
         for (int x = 0; x < _gameBoard.Width; x++)
             for (int y = 0; y < _gameBoard.Height; y++)
             {
-                var pos = new Vector2(x, y);
-                GameObject bgTile = Instantiate(SC_GameVariables.Instance.bgTilePrefabs, pos, Quaternion.identity);
+                GameObject bgTile = Instantiate(SC_GameVariables.Instance.bgTilePrefabs, new Vector3(x, y), Quaternion.identity);
                 bgTile.transform.SetParent(gemHolder);
                 bgTile.name = "BG Tile - " + x + ", " + y;
 
                 int gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
 
                 int iterations = 0;
-                while (_gameBoard.MatchesAt(new Vector2Int(x, y), SC_GameVariables.Instance.gems[gemToUse].type) && iterations < 100)
+                while (_gameBoard.MatchesAt(x, y, SC_GameVariables.Instance.gems[gemToUse].type) && iterations < 100)
                 {
                     gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
                     iterations++;
                 }
-                SpawnGem(new Vector2Int(x, y), SC_GameVariables.Instance.gems[gemToUse]);
+                SpawnGem(x, y, SC_GameVariables.Instance.gems[gemToUse]);
             }
+    }
+    
+    void SpawnGem(int x, int y, SC_Gem gemToSpawn)
+    {
+        if (Random.Range(0, 100f) < SC_GameVariables.Instance.bombChance)
+            gemToSpawn = SC_GameVariables.Instance.bomb;
+
+        SC_Gem gem = Instantiate(gemToSpawn, new Vector3(x, y + SC_GameVariables.Instance.dropHeight, 0f), Quaternion.identity);
+        gem.transform.SetParent(gemHolder.transform);
+        gem.name = "Gem - " + x + ", " + y;
+        _gameBoard.SetGem(x, y, gem);
+        gem.SetupGem(x, y, MovementFinished);
     }
 
     void SpawnGem(Vector2Int position, SC_Gem gemToSpawn)
@@ -210,10 +203,10 @@ public class SC_GameLogic : MonoBehaviour
         if (!curGem)
             return;
 
-        Instantiate(curGem.destroyEffect, new Vector2(pos.x, pos.y), Quaternion.identity);
+        Instantiate(curGem.destroyEffect, new Vector3(pos.x, pos.y), Quaternion.identity);
 
         Destroy(curGem.gameObject);
-        _gameBoard.SetGem(pos.x, pos.y, null);
+        _gameBoard.SetGem(pos, null);
     }
 
     IEnumerator FilledBoardCo()

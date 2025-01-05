@@ -22,8 +22,5 @@ public class SC_GameVariables : MonoBehaviour
 
     public static SC_GameVariables Instance;
 
-    void Awake()
-    {
-        Instance = this;
-    }
+    void Awake() => Instance = this;
 }

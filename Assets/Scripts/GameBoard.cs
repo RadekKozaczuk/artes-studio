@@ -38,6 +38,7 @@ public class GameBoard
         _matches = new bool[Width, Height];
     }
 
+#region Methods
     public void UpdateGems()
     {
         for (int x = 0; x < Width; x++)
@@ -48,6 +49,19 @@ public class GameBoard
                 if (_allGems[x, y])
                     _allGems[x, y].UpdatePosition();
             }
+    }
+    
+    public bool MatchesAt(int x, int y, GlobalEnums.GemType gemType)
+    {
+        if (x > 1)
+            if (_allGems[x - 1, y].type == gemType && _allGems[x - 2, y].type == gemType)
+                return true;
+
+        if (y > 1)
+            if (_allGems[x, y - 1].type == gemType && _allGems[x, y - 2].type == gemType)
+                return true;
+
+        return false;
     }
     
     public bool MatchesAt(Vector2Int positionToCheck, GlobalEnums.GemType gemType)
@@ -66,16 +80,32 @@ public class GameBoard
         return false;
     }
 
+    // todo: consider renaming coordinates to pos
     public bool GetMatch(Vector2Int coordinates) => _matches[coordinates.x, coordinates.y];
     
     public bool GetMatch(int x, int y) => _matches[x, y];
 
     public void SetGem(int x, int y, SC_Gem gem) => _allGems[x, y] = gem;
+    
+    public void SetGem(Vector2Int coordinates, SC_Gem gem) => _allGems[coordinates.x, coordinates.y] = gem;
 
     public SC_Gem GetGem(int x, int y) => _allGems[x, y];
 
     public SC_Gem GetGem(Vector2Int coordinates) => _allGems[coordinates.x, coordinates.y];
 
+    public void SwapGems(Vector2Int pos1, Vector2Int pos2)
+    {
+        SC_Gem currentGem = _allGems[pos1.x, pos1.y];
+        SC_Gem otherGem = _allGems[pos2.x, pos2.y];
+        
+        // set positions
+        (currentGem.posIndex, otherGem.posIndex) = (otherGem.posIndex, currentGem.posIndex);
+                
+        // set (swap) references
+        _allGems[pos1.x, pos1.y] = otherGem;
+        _allGems[pos2.x, pos2.y] = currentGem;
+    }
+    
     public void FindAllMatches()
     {
         for (int x = 0; x < Width; x++)
@@ -111,14 +141,14 @@ public class GameBoard
                     continue;
 
                 SC_Gem aboveGem = _allGems[x, y - 1];
-                SC_Gem bellowGem = _allGems[x, y + 1];
+                SC_Gem belowGem = _allGems[x, y + 1];
 
                 //checking no empty spots
-                if (!aboveGem || !bellowGem)
+                if (!aboveGem || !belowGem)
                     continue;
 
                 //Match
-                if (aboveGem.type == currentGem.type && bellowGem.type == currentGem.type)
+                if (aboveGem.type == currentGem.type && belowGem.type == currentGem.type)
                 {
                     _matches[x, y] = true;
                     _matches[x, y - 1] = true;
@@ -185,5 +215,6 @@ public class GameBoard
                 _matches[x, y] = true;
             }
     }
+#endregion
 }
 
