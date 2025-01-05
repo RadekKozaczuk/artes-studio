@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -136,18 +135,6 @@ public class SC_GameLogic : MonoBehaviour
         _gameBoard.SetGem(x, y, gem);
         gem.SetupGem(x, y, MovementFinished);
     }
-
-    void SpawnGem(Vector2Int position, SC_Gem gemToSpawn)
-    {
-        if (Random.Range(0, 100f) < SC_GameVariables.Instance.bombChance)
-            gemToSpawn = SC_GameVariables.Instance.bomb;
-
-        SC_Gem gem = Instantiate(gemToSpawn, new Vector3(position.x, position.y + SC_GameVariables.Instance.dropHeight, 0f), Quaternion.identity);
-        gem.transform.SetParent(gemHolder.transform);
-        gem.name = "Gem - " + position.x + ", " + position.y;
-        _gameBoard.SetGem(position.x, position.y, gem);
-        gem.SetupGem(position, MovementFinished);
-    }
     
     // if anything is moving then we are in Wait state (waiting for movement to finish)
     // otherwise Move state (player can perform a move)
@@ -238,28 +225,8 @@ public class SC_GameLogic : MonoBehaviour
                     continue;
 
                 int gemToUse = Random.Range(0, SC_GameVariables.Instance.gems.Length);
-                SpawnGem(new Vector2Int(x, y), SC_GameVariables.Instance.gems[gemToUse]);
+                SpawnGem(x, y, SC_GameVariables.Instance.gems[gemToUse]);
             }
-
-        CheckMisplacedGems();
-    }
-
-    void CheckMisplacedGems()
-    {
-        var foundGems = new List<SC_Gem>();
-        foundGems.AddRange(FindObjectsOfType<SC_Gem>());
-        for (int x = 0; x < _gameBoard.Width; x++)
-        {
-            for (int y = 0; y < _gameBoard.Height; y++)
-            {
-                SC_Gem curGem = _gameBoard.GetGem(x, y);
-                if (foundGems.Contains(curGem))
-                    foundGems.Remove(curGem);
-            }
-        }
-
-        foreach (SC_Gem g in foundGems)
-            Destroy(g.gameObject);
     }
 #endregion
 }
