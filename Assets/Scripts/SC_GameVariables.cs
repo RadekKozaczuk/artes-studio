@@ -20,6 +20,9 @@ public class SC_GameVariables : MonoBehaviour
 
     public Sprite[] gemSprites;
     public ParticleSystem[] effects;
+    public Color[] bombTilts;
+
+    public Color defaultGemColor;
     
     public float bonusAmount = 0.5f;
     public float bombChance = 2f;

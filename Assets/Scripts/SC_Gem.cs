@@ -4,6 +4,7 @@ using UnityEngine.Assertions;
 
 public class SC_Gem : MonoBehaviour
 {
+#region Properties
     /// <summary>
     /// For now, it is also the id of the element.
     /// In the future these to should be separated.
@@ -25,12 +26,15 @@ public class SC_Gem : MonoBehaviour
         }
     }
     Vector2Int _posIndex = new (int.MinValue, int.MinValue);
+#endregion
 
+#region Variables
     public GlobalEnums.GemType type;
     public SpriteRenderer spriteRenderer;
 
     Action<int, int> _movementFinishedCallback;
-
+#endregion
+    
     public void UpdatePosition()
     {
         if (SC_GameLogic.Movement[_posIndex.x, _posIndex.y])

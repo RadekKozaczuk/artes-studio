@@ -968,6 +968,13 @@ MonoBehaviour:
   - {fileID: 5164992336748094917, guid: 7fcedfb0407bb5d438de37da2d61df30, type: 3}
   - {fileID: 2139661992121877014, guid: 986dd822e2e6d4b45b2a054259f1241b, type: 3}
   - {fileID: 8656875643190799694, guid: 05c754e3d4f9fd349ac1def58d17670f, type: 3}
+  bombTilts:
+  - {r: 0, g: 0, b: 1, a: 1}
+  - {r: 0, g: 1, b: 0, a: 1}
+  - {r: 1, g: 0, b: 0, a: 1}
+  - {r: 1, g: 1, b: 0, a: 1}
+  - {r: 1, g: 0, b: 1, a: 1}
+  defaultGemColor: {r: 1, g: 1, b: 1, a: 1}
   bonusAmount: 0.5
   bombChance: 3
   dropHeight: 1

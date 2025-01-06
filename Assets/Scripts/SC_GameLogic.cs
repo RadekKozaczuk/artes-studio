@@ -51,6 +51,8 @@ public class SC_GameLogic : MonoBehaviour
             {
                 gem.posIndex = new Vector2Int(int.MinValue, int.MinValue);
                 gem.gameObject.SetActive(false);
+                
+                gem.spriteRenderer.color = SC_GameVariables.Instance.defaultGemColor;
             });
 
         Array types = Enum.GetValues(typeof(GlobalEnums.GemType));
@@ -110,14 +112,21 @@ public class SC_GameLogic : MonoBehaviour
         }
         else
         {
-            // Put a bomb in place of a four match
+            // Put a bomb in place of the piece that create a match
             if (_gameBoard.GetMatch(other) == GlobalEnums.MatchType.FourPiece)
             {
+                SC_Gem piece = _gameBoard.GetGem(other);
+                piece.spriteRenderer.color = SC_GameVariables.Instance.bombTilts[(int)piece.type];
+                    
                 _gameBoard.SetType(other, GlobalEnums.GemType.Bomb);
                 _gameBoard.SetMatch(other, GlobalEnums.MatchType.Nothing);
+                
             }
             else if (_gameBoard.GetMatch(current) == GlobalEnums.MatchType.FourPiece)
             {
+                SC_Gem piece = _gameBoard.GetGem(current);
+                piece.spriteRenderer.color = SC_GameVariables.Instance.bombTilts[(int)piece.type];
+                
                 _gameBoard.SetType(current, GlobalEnums.GemType.Bomb);
                 _gameBoard.SetMatch(current, GlobalEnums.MatchType.Nothing);
             }
