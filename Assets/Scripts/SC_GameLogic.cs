@@ -36,7 +36,7 @@ public class SC_GameLogic : MonoBehaviour
     SC_Input _scInput;
 
     // we start in the random spot and then proceed forward in case of a match
-    GlobalEnums.GemType[] _gemTypes;
+    GlobalEnums.PieceType[] _gemTypes;
 #endregion
     
 #region MonoBehaviour
@@ -51,15 +51,15 @@ public class SC_GameLogic : MonoBehaviour
             {
                 gem.posIndex = new Vector2Int(int.MinValue, int.MinValue);
                 gem.gameObject.SetActive(false);
-                
                 gem.spriteRenderer.color = SC_GameVariables.Instance.defaultGemColor;
+                gem.dropDelay = 0f;
             });
 
-        Array types = Enum.GetValues(typeof(GlobalEnums.GemType));
-        _gemTypes = new GlobalEnums.GemType[types.Length - 1];
+        Array types = Enum.GetValues(typeof(GlobalEnums.PieceType));
+        _gemTypes = new GlobalEnums.PieceType[types.Length - 1];
 
         for (int i = 0; i < types.Length - 1; i++)
-            _gemTypes[i] = (GlobalEnums.GemType)types.GetValue(i);
+            _gemTypes[i] = (GlobalEnums.PieceType)types.GetValue(i);
         
         Init();
     }
@@ -118,7 +118,7 @@ public class SC_GameLogic : MonoBehaviour
                 SC_Gem piece = _gameBoard.GetGem(other);
                 piece.spriteRenderer.color = SC_GameVariables.Instance.bombTilts[(int)piece.type];
                     
-                _gameBoard.SetType(other, GlobalEnums.GemType.Bomb);
+                _gameBoard.SetType(other, GlobalEnums.PieceType.Bomb);
                 _gameBoard.SetMatch(other, GlobalEnums.MatchType.Nothing);
                 
             }
@@ -127,7 +127,7 @@ public class SC_GameLogic : MonoBehaviour
                 SC_Gem piece = _gameBoard.GetGem(current);
                 piece.spriteRenderer.color = SC_GameVariables.Instance.bombTilts[(int)piece.type];
                 
-                _gameBoard.SetType(current, GlobalEnums.GemType.Bomb);
+                _gameBoard.SetType(current, GlobalEnums.PieceType.Bomb);
                 _gameBoard.SetMatch(current, GlobalEnums.MatchType.Nothing);
             }
             
@@ -152,7 +152,7 @@ public class SC_GameLogic : MonoBehaviour
                 bgTile.transform.SetParent(gemHolder);
                 bgTile.name = "BG Tile - " + x + ", " + y;
 
-                GlobalEnums.GemType gem = GetRandomPiece(x, y);
+                GlobalEnums.PieceType gem = GetRandomPiece(x, y);
                 SpawnGem(x, y, gem);
             }
     }
@@ -160,11 +160,11 @@ public class SC_GameLogic : MonoBehaviour
     /// <summary>
     /// Select a random piece type. It tries to avoid returning a type that would result in a match but there is no guarantee.
     /// </summary>
-    GlobalEnums.GemType GetRandomPiece(int x, int y)
+    GlobalEnums.PieceType GetRandomPiece(int x, int y)
     {
         // first decide if a bomb
         if (Random.Range(0, 100f) < SC_GameVariables.Instance.bombChance)
-            return GlobalEnums.GemType.Bomb;
+            return GlobalEnums.PieceType.Bomb;
         
         // if not go for a normal piece
         // pick random
@@ -187,14 +187,15 @@ public class SC_GameLogic : MonoBehaviour
         return _gemTypes[rand];
     }
     
-    void SpawnGem(int x, int y, GlobalEnums.GemType type)
+    void SpawnGem(int x, int y, GlobalEnums.PieceType type, float delay = 0f)
     {
         SC_Gem gem = _gemPool.Get();
 
         gem.transform.position = new Vector3(x, y + SC_GameVariables.Instance.dropHeight, 0f);
         gem.name = "Gem - " + x + ", " + y;
-        _gameBoard.SetGem(x, y, gem);
         gem.SetupGem(x, y, type, MovementFinished);
+        gem.dropDelay = delay;
+        _gameBoard.SetGem(x, y, gem);
     }
     
     // if anything is moving then we are in Wait state (waiting for movement to finish)
@@ -281,15 +282,19 @@ public class SC_GameLogic : MonoBehaviour
     void RefillBoard()
     {
         for (int x = 0; x < _gameBoard.Width; x++)
+        {
+            float delay = 0f;
             for (int y = 0; y < _gameBoard.Height; y++)
             {
                 SC_Gem curGem = _gameBoard.GetGem(x, y);
                 if (curGem)
                     continue;
 
-                GlobalEnums.GemType gem = GetRandomPiece(x, y);
-                SpawnGem(x, y, gem);
+                GlobalEnums.PieceType type = GetRandomPiece(x, y);
+                SpawnGem(x, y, type, delay);
+                delay += SC_GameVariables.Instance.dropDelay;
             }
+        }
     }
 #endregion
 }

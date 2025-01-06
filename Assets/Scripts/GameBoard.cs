@@ -52,7 +52,7 @@ public class GameBoard
             }
     }
     
-    public bool MatchesAt(int x, int y, GlobalEnums.GemType gemType)
+    public bool MatchesAt(int x, int y, GlobalEnums.PieceType gemType)
     {
         if (x > 1)
             if (_allGems[x - 1, y].type == gemType && _allGems[x - 2, y].type == gemType)
@@ -75,7 +75,7 @@ public class GameBoard
     
     public void SetGem(Vector2Int pos, SC_Gem gem) => _allGems[pos.x, pos.y] = gem;
     
-    public void SetType(Vector2Int pos, GlobalEnums.GemType type)
+    public void SetType(Vector2Int pos, GlobalEnums.PieceType type)
     {
         SC_Gem gem = _allGems[pos.x, pos.y];
         gem.type = type;
@@ -213,7 +213,7 @@ public class GameBoard
                 {
                     SC_Gem otherGem = _allGems[x - 1, y];
                     
-                    if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
+                    if (otherGem && otherGem.type == GlobalEnums.PieceType.Bomb)
                         MarkBombArea(x - 1, y);
                 }
 
@@ -221,7 +221,7 @@ public class GameBoard
                 {
                     SC_Gem otherGem = _allGems[x + 1, y];
                     
-                    if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
+                    if (otherGem && otherGem.type == GlobalEnums.PieceType.Bomb)
                         MarkBombArea(x + 1, y);
                 }
 
@@ -229,7 +229,7 @@ public class GameBoard
                 {
                     SC_Gem otherGem = _allGems[x, y - 1];
                     
-                    if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
+                    if (otherGem && otherGem.type == GlobalEnums.PieceType.Bomb)
                         MarkBombArea(x, y - 1);
                 }
 
@@ -237,7 +237,7 @@ public class GameBoard
                 {
                     SC_Gem otherGem = _allGems[x, y + 1];
                     
-                    if (otherGem && otherGem.type == GlobalEnums.GemType.Bomb)
+                    if (otherGem && otherGem.type == GlobalEnums.PieceType.Bomb)
                         MarkBombArea(x, y + 1);
                 }
             }

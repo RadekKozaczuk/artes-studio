@@ -32,6 +32,8 @@ public class SC_GameVariables : MonoBehaviour
 
     public float bombNeighbourDestructionDelay;
     public float bombSelfDestructionDelay;
+
+    public float dropDelay = 0.1f;
     
     [HideInInspector]
     public int rowsSize = 7;

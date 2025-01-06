@@ -2,7 +2,7 @@
 
 public class GlobalEnums : MonoBehaviour
 {
-    public enum GemType
+    public enum PieceType
     {
         Blue, Green, Red, Yellow, Purple, Bomb
     };

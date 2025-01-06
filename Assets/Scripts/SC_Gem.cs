@@ -29,21 +29,29 @@ public class SC_Gem : MonoBehaviour
 #endregion
 
 #region Variables
-    public GlobalEnums.GemType type;
+    public GlobalEnums.PieceType type;
     public SpriteRenderer spriteRenderer;
+    public float dropDelay;
 
     Action<int, int> _movementFinishedCallback;
 #endregion
     
     public void UpdatePosition()
     {
+        float time = Time.deltaTime;
+
+        dropDelay -= time;
+
+        if (dropDelay > 0)
+            return;
+        
         if (SC_GameLogic.Movement[_posIndex.x, _posIndex.y])
         {
             // caching
             Vector3 pos = transform.position;
             
             if (Utils.FastDistance2D(pos, posIndex) > 0.01f)
-                transform.position = Vector3.Lerp(pos, new Vector3(posIndex.x, posIndex.y, 0), SC_GameVariables.Instance.gemSpeed * Time.deltaTime);
+                transform.position = Vector3.Lerp(pos, new Vector3(posIndex.x, posIndex.y, 0), SC_GameVariables.Instance.gemSpeed * time);
             else
             {
                 transform.position = new Vector3(posIndex.x, posIndex.y, 0);
@@ -52,7 +60,7 @@ public class SC_Gem : MonoBehaviour
         }
     }
     
-    public void SetupGem(int x, int y, GlobalEnums.GemType gemType, Action<int, int> movementFinishedCallback)
+    public void SetupGem(int x, int y, GlobalEnums.PieceType gemType, Action<int, int> movementFinishedCallback)
     {
         posIndex = new Vector2Int(x, y);
         type = gemType;
