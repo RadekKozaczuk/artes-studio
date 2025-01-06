@@ -980,8 +980,9 @@ MonoBehaviour:
   dropHeight: 1
   gemSpeed: 7
   scoreSpeed: 5
-  bombNeighbourDestructionDelay: 0
-  bombSelfDestructionDelay: 1
+  bombNeighbourDestructionDelay: 1
+  bombSelfDestructionDelay: 1.5
+  dropDelay: 0.1
   rowsSize: 7
   colsSize: 7
   scoreValue: 10

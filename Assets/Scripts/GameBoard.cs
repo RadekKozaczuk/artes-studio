@@ -44,12 +44,8 @@ public class GameBoard
     {
         for (int x = 0; x < Width; x++)
             for (int y = 0; y < Height; y++)
-            {
-                // todo: for now lets ignore nulls
-                // todo: in the future, object will be reused
                 if (_allGems[x, y])
                     _allGems[x, y].UpdatePosition();
-            }
     }
     
     public bool MatchesAt(int x, int y, GlobalEnums.PieceType gemType)
@@ -105,6 +101,7 @@ public class GameBoard
     /// </summary>
     public void FindAllMatches()
     {
+        // cleanup
         for (int x = 0; x < Width; x++)
             for (int y = 0; y < Height; y++)
                 _matches[x, y] = GlobalEnums.MatchType.Nothing;
@@ -209,37 +206,10 @@ public class GameBoard
         for (int x = 0; x < Width; x++)
             for (int y = 0; y < Height; y++)
             {
-                if (x > 0)
-                {
-                    SC_Gem otherGem = _allGems[x - 1, y];
+                SC_Gem gem = _allGems[x, y];
                     
-                    if (otherGem && otherGem.type == GlobalEnums.PieceType.Bomb)
-                        MarkBombArea(x - 1, y);
-                }
-
-                if (x + 1 < Width)
-                {
-                    SC_Gem otherGem = _allGems[x + 1, y];
-                    
-                    if (otherGem && otherGem.type == GlobalEnums.PieceType.Bomb)
-                        MarkBombArea(x + 1, y);
-                }
-
-                if (y > 0)
-                {
-                    SC_Gem otherGem = _allGems[x, y - 1];
-                    
-                    if (otherGem && otherGem.type == GlobalEnums.PieceType.Bomb)
-                        MarkBombArea(x, y - 1);
-                }
-
-                if (y + 1 < Height)
-                {
-                    SC_Gem otherGem = _allGems[x, y + 1];
-                    
-                    if (otherGem && otherGem.type == GlobalEnums.PieceType.Bomb)
-                        MarkBombArea(x, y + 1);
-                }
+                if (gem && gem.type == GlobalEnums.PieceType.Bomb)
+                    MarkBombArea(x, y);
             }
     }
     
@@ -264,6 +234,13 @@ public class GameBoard
                 // skip if distance is greater than blastSize
                 if (Math.Abs(posX - x) + Math.Abs(posY - y) > blastSize)
                     continue;
+                
+                // mark yourself as a BombItself
+                if (x == posX && y == posY)
+                {
+                    _matches[x, y] = GlobalEnums.MatchType.BombItself;
+                    continue;
+                }
 
                 // skip already matched
                 if (_matches[x, y] == GlobalEnums.MatchType.Nothing)

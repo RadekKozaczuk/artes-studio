@@ -120,7 +120,6 @@ public class SC_GameLogic : MonoBehaviour
                     
                 _gameBoard.SetType(other, GlobalEnums.PieceType.Bomb);
                 _gameBoard.SetMatch(other, GlobalEnums.MatchType.Nothing);
-                
             }
             else if (_gameBoard.GetMatch(current) == GlobalEnums.MatchType.FourPiece)
             {
@@ -131,7 +130,7 @@ public class SC_GameLogic : MonoBehaviour
                 _gameBoard.SetMatch(current, GlobalEnums.MatchType.Nothing);
             }
             
-            DestroyMatches();
+            StartCoroutine(DestroyMatches());
         }
     }
 #endregion
@@ -150,7 +149,7 @@ public class SC_GameLogic : MonoBehaviour
             {
                 GameObject bgTile = Instantiate(SC_GameVariables.Instance.bgTilePrefabs, new Vector3(x, y), Quaternion.identity);
                 bgTile.transform.SetParent(gemHolder);
-                bgTile.name = "BG Tile - " + x + ", " + y;
+                bgTile.name = $"BG Tile - {x}, {y}";
 
                 GlobalEnums.PieceType gem = GetRandomPiece(x, y);
                 SpawnGem(x, y, gem);
@@ -192,7 +191,7 @@ public class SC_GameLogic : MonoBehaviour
         SC_Gem gem = _gemPool.Get();
 
         gem.transform.position = new Vector3(x, y + SC_GameVariables.Instance.dropHeight, 0f);
-        gem.name = "Gem - " + x + ", " + y;
+        gem.name = $"Gem - {x}, {y}";
         gem.SetupGem(x, y, type, MovementFinished);
         gem.dropDelay = delay;
         _gameBoard.SetGem(x, y, gem);
@@ -202,19 +201,61 @@ public class SC_GameLogic : MonoBehaviour
     // otherwise Move state (player can perform a move)
     static void MovementFinished(int x, int y) => Movement[x, y] = false;
     
-    void DestroyMatches()
+    IEnumerator DestroyMatches()
     {
+        bool atLeastOneBomb = false;
+        
+        // destroy normal matches
         for (int x = 0; x < _gameBoard.Width; x++)
             for (int y = 0; y < _gameBoard.Height; y++)
-                if (_gameBoard.GetMatch(x, y) != GlobalEnums.MatchType.Nothing)
+            {
+                GlobalEnums.MatchType match = _gameBoard.GetMatch(x, y);
+                if (match == GlobalEnums.MatchType.Nothing)
+                    continue;
+
+                SC_Gem gem = _gameBoard.GetGem(x, y);
+                if (gem)
                 {
-                    SC_Gem gem = _gameBoard.GetGem(x, y);
-                    if (gem)
+                    if (match == GlobalEnums.MatchType.BombItself)
+                    {
+                        atLeastOneBomb = true;
+                    }
+                    else if (match is GlobalEnums.MatchType.ThreePiece or GlobalEnums.MatchType.FourPiece)
                     {
                         SC_GameVariables.Instance.score += SC_GameVariables.Instance.scoreValue;
                         DestroyMatchedGemsAt(gem.posIndex);
                     }
                 }
+            }
+
+        // if there are any bombs destroy them after a delay
+        if (atLeastOneBomb)
+        {
+            yield return new WaitForSeconds(SC_GameVariables.Instance.bombNeighbourDestructionDelay);
+            
+            // destroy what was destroyed by bombs
+            DestroyPieces(GlobalEnums.MatchType.Bomb);
+
+            yield return new WaitForSeconds(SC_GameVariables.Instance.bombSelfDestructionDelay);
+
+            // destroy bombs themselves
+            DestroyPieces(GlobalEnums.MatchType.BombItself);
+            
+            void DestroyPieces(GlobalEnums.MatchType type)
+            {
+                for (int x = 0; x < _gameBoard.Width; x++)
+                    for (int y = 0; y < _gameBoard.Height; y++)
+                        if (_gameBoard.GetMatch(x, y) == type)
+                        {
+                            SC_Gem gem = _gameBoard.GetGem(x, y);
+                            if (gem)
+                            {
+                                SC_GameVariables.Instance.score += SC_GameVariables.Instance.scoreValue;
+                                DestroyMatchedGemsAt(gem.posIndex);
+                            }
+                        }
+            }
+        }
         
         StartCoroutine(DecreaseRowCo());
     }
@@ -269,7 +310,7 @@ public class SC_GameLogic : MonoBehaviour
         if (_gameBoard.MatchCount > 0)
         {
             yield return new WaitForSeconds(0.5f);
-            DestroyMatches();
+            StartCoroutine(DestroyMatches());
         }
         else
         {
@@ -279,6 +320,10 @@ public class SC_GameLogic : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Creates new elements in place of missing ones.
+    /// Additionally apply drop delay to newly spawned gems.
+    /// </summary>
     void RefillBoard()
     {
         for (int x = 0; x < _gameBoard.Width; x++)
